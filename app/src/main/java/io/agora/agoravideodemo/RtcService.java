@@ -2,9 +2,11 @@ package io.agora.agoravideodemo;
 
 import android.app.Notification;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -30,7 +32,9 @@ public class RtcService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        startService(new Intent(this, RtcService.class));
         initializeAgoraEngine();
+
         mNotificationHelper = new NotificationHelper(this);
     }
 
@@ -57,12 +61,8 @@ public class RtcService extends Service {
     private final IRtcEngineEventHandler mRtcEventHandler = new IRtcEngineEventHandler() {
 
         @Override
-        public void onJoinChannelSuccess(String channel, int uid, int elapsed) {
-            super.onJoinChannelSuccess(channel, uid, elapsed);
-        }
-
-        @Override
         public void onFirstRemoteVideoDecoded(final int uid, int width, int height, int elapsed) {
+            saveLastRemoteUserID(uid, RtcService.this);
             Intent intent = new Intent(IntentAction.FIRST_REMOTE_VIDEO_DECODED.name());
             intent.putExtra("uid", uid);
             sendRtcEngineEvenMessage(intent);
@@ -110,6 +110,12 @@ public class RtcService extends Service {
         return mRtcEngine;
     }
 
+    @Override
+    public void onDestroy() {
+        stopRtcService();
+        super.onDestroy();
+    }
+
     /**
      * Class used for the client Binder.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with IPC.
@@ -121,4 +127,13 @@ public class RtcService extends Service {
         }
     }
 
+
+    public static void saveLastRemoteUserID(int lastUserId, Context context) {
+        PreferenceManager.getDefaultSharedPreferences(context).edit().putInt("lastUserId", lastUserId).apply();
+    }
+
+
+    public static int getLastUserID(Context context) {
+        return PreferenceManager.getDefaultSharedPreferences(context).getInt("lastUserId", 0);
+    }
 }

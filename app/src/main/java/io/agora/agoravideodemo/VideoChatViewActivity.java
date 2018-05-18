@@ -35,6 +35,10 @@ public class VideoChatViewActivity extends BaseRtcActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //This is just a temp fix. Eventually it should continue without stopping the service.
+        Intent intent = new Intent(this, RtcService.class);
+        stopService(intent);
+        //
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_chat_view);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -167,15 +171,21 @@ public class VideoChatViewActivity extends BaseRtcActivity {
 
     // Tutorial Step 4
     private void joinChannel() {
+        Log.d(LOG_TAG, "joinChannel mRtcEngine.getCallId() = " + mRtcEngine.getCallId());
         Intent intent = getIntent();
         String roomId = intent.getStringExtra(CHAT_ROOM_KEY);
-        mRtcEngine.joinChannel(null, roomId, "Extra Optional Data", 0); // if you do not specify the uid, we will generate the uid for you
+        if (mRtcEngine.getCallId() == null) {
+            mRtcEngine.joinChannel(null, roomId, "Extra Optional Data", 0); // if you do not specify the uid, we will generate the uid for you
+        } else {
+            setupRemoteVideo(RtcService.getLastUserID(this));
+        }
         joinChannelRequested();
     }
 
     // Tutorial Step 5
     @Override
     public void setupRemoteVideo(int uid) {
+
         FrameLayout container = findViewById(R.id.remote_video_view_container);
 
         if (container.getChildCount() >= 1) {
@@ -184,6 +194,7 @@ public class VideoChatViewActivity extends BaseRtcActivity {
 
         SurfaceView surfaceView = RtcEngine.CreateRendererView(getBaseContext());
         container.addView(surfaceView);
+
         mRtcEngine.setupRemoteVideo(new VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_ADAPTIVE, uid));
 
         surfaceView.setTag(uid); // for mark purpose

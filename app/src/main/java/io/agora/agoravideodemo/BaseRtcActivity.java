@@ -18,7 +18,6 @@ import io.agora.rtc.RtcEngine;
 abstract public class BaseRtcActivity extends AppCompatActivity {
     RtcService mService;
     boolean mBound = false;
-    private RtcEngine mRtcEngine;
 
     @Override
     protected void onStart() {
@@ -46,8 +45,7 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
             RtcService.LocalBinder binder = (RtcService.LocalBinder) service;
             mService = binder.getService();
             mBound = true;
-            mRtcEngine = mService.getRtcEngine();
-            onRtcServiceConnected(mRtcEngine);
+            onRtcServiceConnected(mService.getRtcEngine());
         }
 
         @Override
@@ -100,8 +98,8 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
                     onRemoteUserVideoMuted(uid, muted);
                     break;
                 case RTC_ERROR:
-                    String error = intent.getStringExtra("err");
-                    onRtcError(error);
+                    int error = intent.getIntExtra("err", 0);
+                    onRtcError("Rtc Event error " + error + " Please try again.");
                     break;
             }
         }
@@ -109,7 +107,7 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
 
 
     public RtcEngine getRtcEngine() {
-        return mRtcEngine;
+        return mService.getRtcEngine();
     }
 
     abstract public void onRtcServiceConnected(RtcEngine rtcEngine);
