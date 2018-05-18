@@ -3,13 +3,16 @@ package io.agora.agoravideodemo.utils;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 
 import io.agora.agoravideodemo.R;
+import io.agora.agoravideodemo.RtcService;
 
 
 /**
@@ -18,7 +21,6 @@ import io.agora.agoravideodemo.R;
 public class NotificationHelper extends ContextWrapper {
     private NotificationManager manager;
     public static final String CALL_STATUS_CHANNEL = "CALL_STATUS_CHANNEL";
-    public static final String SECONDARY_CHANNEL = "second";
 
     /**
      * Registers notification channels, which can be used later by individual notifications.
@@ -29,7 +31,8 @@ public class NotificationHelper extends ContextWrapper {
         super(ctx);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                 getManager().getNotificationChannel(CALL_STATUS_CHANNEL) == null) {
-            NotificationChannel chan1 = new NotificationChannel(CALL_STATUS_CHANNEL, getString(R.string.noti_channel_call), NotificationManager.IMPORTANCE_DEFAULT);
+            NotificationChannel chan1 = new NotificationChannel(CALL_STATUS_CHANNEL,
+                    getString(R.string.noti_channel_call), NotificationManager.IMPORTANCE_LOW);
             chan1.setLightColor(Color.GREEN);
             chan1.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             getManager().createNotificationChannel(chan1);
@@ -47,10 +50,19 @@ public class NotificationHelper extends ContextWrapper {
      * @return the builder as it keeps a reference to the notification (since API 24)
      */
     public NotificationCompat.Builder getNotification1(String title, String body) {
+
+        Intent endCallIntent = new Intent(this, RtcService.class);
+        endCallIntent.setAction(RtcService.ACTION_END_CALL);
+        PendingIntent endCallPendingIntent =
+                PendingIntent.getService(this, 0, endCallIntent, 0);
+
         return new NotificationCompat.Builder(getApplicationContext(), CALL_STATUS_CHANNEL)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setSmallIcon(getSmallIcon())
+                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setOngoing(true)
+                .addAction(0, "End Call", endCallPendingIntent)
                 .setAutoCancel(true);
     }
 

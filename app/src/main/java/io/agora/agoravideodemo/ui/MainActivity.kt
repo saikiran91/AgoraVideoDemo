@@ -1,11 +1,12 @@
-package io.agora.agoravideodemo
+package io.agora.agoravideodemo.ui
 
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import io.agora.agoravideodemo.VideoChatViewActivity.CHAT_ROOM_KEY
+import io.agora.agoravideodemo.R
+import io.agora.agoravideodemo.ui.VideoChatViewActivity.CHAT_ROOM_KEY
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {

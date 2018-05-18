@@ -1,4 +1,4 @@
-package io.agora.agoravideodemo;
+package io.agora.agoravideodemo.ui;
 
 import android.Manifest;
 import android.content.Intent;
@@ -17,6 +17,9 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import io.agora.agoravideodemo.R;
+import io.agora.agoravideodemo.RtcService;
+import io.agora.agoravideodemo.base.BaseRtcActivity;
 import io.agora.agoravideodemo.utils.OnDragTouchListener;
 import io.agora.rtc.Constants;
 import io.agora.rtc.RtcEngine;
@@ -239,5 +242,11 @@ public class VideoChatViewActivity extends BaseRtcActivity {
         super.onRtcError(error);
         Snackbar.make(findViewById(R.id.activity_video_chat_view), error, Snackbar.LENGTH_LONG)
                 .setAction("OK", null).show();
+    }
+
+    @Override
+    public void onCallEnded() {
+        super.onCallEnded();
+        finish();
     }
 }

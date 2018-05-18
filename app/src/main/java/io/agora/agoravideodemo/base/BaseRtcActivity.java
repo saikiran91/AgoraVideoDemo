@@ -1,4 +1,4 @@
-package io.agora.agoravideodemo;
+package io.agora.agoravideodemo.base;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -10,6 +10,7 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 
+import io.agora.agoravideodemo.RtcService;
 import io.agora.rtc.RtcEngine;
 
 /**
@@ -17,7 +18,7 @@ import io.agora.rtc.RtcEngine;
  **/
 abstract public class BaseRtcActivity extends AppCompatActivity {
     RtcService mService;
-    boolean mBound = false;
+    public boolean mBound = false;
 
     @Override
     protected void onStart() {
@@ -101,16 +102,23 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
                     int error = intent.getIntExtra("err", 0);
                     onRtcError("Rtc Event error " + error + " Please try again.");
                     break;
+
+                case CALL_ENDED:
+                    onCallEnded();
+                    break;
             }
         }
     };
-
 
     public RtcEngine getRtcEngine() {
         return mService.getRtcEngine();
     }
 
     abstract public void onRtcServiceConnected(RtcEngine rtcEngine);
+
+    public void onCallEnded() {
+        //Implement in client if required
+    }
 
     public void onRemoteUserVideoMuted(int uid, boolean muted) {
         //Implement in client if required

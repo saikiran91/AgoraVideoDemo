@@ -17,7 +17,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -26,9 +26,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".VideoChatFragment" />
         <activity
-            android:name=".VideoChatViewActivity"
+            android:name=".ui.VideoChatViewActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.FullScreenVideoTheme" />
 

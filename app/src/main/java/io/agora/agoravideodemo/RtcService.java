@@ -17,9 +17,11 @@ import io.agora.rtc.RtcEngine;
 public class RtcService extends Service {
     private static final String TAG = "RtcService";
     private NotificationHelper mNotificationHelper;
+    public static final String ACTION_END_CALL = "end_call";
+    private static final int NOTIFICATION_ID = 340;
 
 
-    enum IntentAction {FIRST_REMOTE_VIDEO_DECODED, USER_OFFLINE, USER_MUTE_VIDEO, RTC_ERROR}
+    public enum IntentAction {FIRST_REMOTE_VIDEO_DECODED, USER_OFFLINE, USER_MUTE_VIDEO, RTC_ERROR, CALL_ENDED}
 
     // Binder given to clients
     private final IBinder mBinder = new LocalBinder();
@@ -38,6 +40,20 @@ public class RtcService extends Service {
         mNotificationHelper = new NotificationHelper(this);
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent.getAction() != null && intent.getAction().equals(ACTION_END_CALL)) {
+            notifyEndCallToClients();
+            stopSelf();
+        }
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void notifyEndCallToClients() {
+        Intent intent = new Intent(IntentAction.CALL_ENDED.name());
+        sendLocalBroadcast(intent);
+    }
+
     public void stopRtcService() {
         RtcEngine.destroy();
         mRtcEngine = null;
@@ -46,8 +62,8 @@ public class RtcService extends Service {
 
     public void joinChannelRequested() {
         Notification notification = mNotificationHelper.getNotification1("OnGoing Call", "Tap to return").build();
-        mNotificationHelper.notify(100, notification);
-        this.startForeground(100, notification);
+        mNotificationHelper.notify(NOTIFICATION_ID, notification);
+        startForeground(NOTIFICATION_ID, notification);
     }
 
     private void initializeAgoraEngine() {
@@ -65,14 +81,14 @@ public class RtcService extends Service {
             saveLastRemoteUserID(uid, RtcService.this);
             Intent intent = new Intent(IntentAction.FIRST_REMOTE_VIDEO_DECODED.name());
             intent.putExtra("uid", uid);
-            sendRtcEngineEvenMessage(intent);
+            sendLocalBroadcast(intent);
         }
 
         @Override
         public void onUserOffline(int uid, int reason) {
             Intent intent = new Intent(IntentAction.USER_OFFLINE.name());
             intent.putExtra("uid", uid);
-            sendRtcEngineEvenMessage(intent);
+            sendLocalBroadcast(intent);
         }
 
         @Override
@@ -80,7 +96,7 @@ public class RtcService extends Service {
             Intent intent = new Intent(IntentAction.USER_MUTE_VIDEO.name());
             intent.putExtra("uid", uid);
             intent.putExtra("muted", muted);
-            sendRtcEngineEvenMessage(intent);
+            sendLocalBroadcast(intent);
         }
 
         @Override
@@ -88,11 +104,11 @@ public class RtcService extends Service {
             Intent intent = new Intent(IntentAction.RTC_ERROR.name());
             super.onError(err);
             intent.putExtra("err", err);
-            sendRtcEngineEvenMessage(intent);
+            sendLocalBroadcast(intent);
         }
     };
 
-    private void sendRtcEngineEvenMessage(Intent intent) {
+    private void sendLocalBroadcast(Intent intent) {
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
@@ -121,7 +137,7 @@ public class RtcService extends Service {
      * runs in the same process as its clients, we don't need to deal with IPC.
      */
     public class LocalBinder extends Binder {
-        RtcService getService() {
+        public RtcService getService() {
             // Return this instance of LocalService so clients can call public methods
             return RtcService.this;
         }
