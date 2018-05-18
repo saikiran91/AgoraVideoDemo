@@ -35,10 +35,6 @@ public class VideoChatViewActivity extends BaseRtcActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //This is just a temp fix. Eventually it should continue without stopping the service.
-        Intent intent = new Intent(this, RtcService.class);
-        stopService(intent);
-        //
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_chat_view);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
