@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_video_chat_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="ContentDescription">
+
+    <FrameLayout
+        android:id="@+id/remote_video_view_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <FrameLayout
+        android:id="@+id/local_video_view_container"
+        android:layout_width="120dp"
+        android:layout_height="210dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginEnd="@dimen/activity_horizontal_margin"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:background="@android:color/darker_gray" />
+
+
+    <TextView
+        android:id="@+id/quick_tips_when_use_agora_sdk"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/action_footer"
+        android:layout_margin="20dp"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:gravity="center_vertical|start"
+        android:text="1. Waiting for remote users\n2. This demo only supports 1v1 video calling" />
+
+    <LinearLayout
+        android:id="@+id/action_footer"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="20"
+            android:onClick="onLocalVideoMuteClicked"
+            android:scaleType="centerInside"
+            android:src="@drawable/btn_voice" />
+
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="20"
+            android:onClick="onLocalAudioMuteClicked"
+            android:scaleType="centerInside"
+            android:src="@drawable/btn_mute" />
+
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="20"
+            android:onClick="onSwitchCameraClicked"
+            android:scaleType="centerInside"
+            android:src="@drawable/btn_switch_camera" />
+
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="20"
+            android:onClick="onEncCallClicked"
+            android:scaleType="centerInside"
+            android:src="@drawable/btn_end_call" />
+
+    </LinearLayout>
+
+
+</RelativeLayout>
