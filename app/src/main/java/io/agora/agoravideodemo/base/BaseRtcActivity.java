@@ -46,6 +46,8 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
             RtcService.LocalBinder binder = (RtcService.LocalBinder) service;
             mService = binder.getService();
             mBound = true;
+            if (mService.getRtcEngine() == null)
+                mService.initializeAgoraEngine();
             onRtcServiceConnected(mService.getRtcEngine());
         }
 
@@ -141,6 +143,8 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
     }
 
     final public void stopRtcService() {
-        if (mBound) mService.stopRtcService();
+        Intent endCallIntent = new Intent(this, RtcService.class);
+        endCallIntent.setAction(RtcService.ACTION_END_CALL);
+        startService(endCallIntent);
     }
 }

@@ -42,6 +42,7 @@ public class RtcService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent.getAction() != null && intent.getAction().equals(ACTION_END_CALL)) {
             notifyEndCallToClients();
+            releaseResource();
             stopSelf();
         }
         return super.onStartCommand(intent, flags, startId);
@@ -52,10 +53,6 @@ public class RtcService extends Service {
         sendLocalBroadcast(intent);
     }
 
-    public void stopRtcService() {
-        stopSelf();
-    }
-
     public void joinChannelRequested() {
         startService(new Intent(this, RtcService.class));
         Notification notification = mNotificationHelper.getNotification1("Agora call on going", "Tap to return").build();
@@ -63,7 +60,7 @@ public class RtcService extends Service {
         startForeground(NOTIFICATION_ID, notification);
     }
 
-    private void initializeAgoraEngine() {
+    public void initializeAgoraEngine() {
         try {
             mRtcEngine = RtcEngine.create(getBaseContext(), getString(R.string.agora_app_id), mRtcEventHandler);
         } catch (Exception e) {
@@ -112,11 +109,6 @@ public class RtcService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
-    }
-
-
-    private Boolean isCallOngoing() {
-        return true;
     }
 
     public RtcEngine getRtcEngine() {

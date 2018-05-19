@@ -16,7 +16,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import io.agora.agoravideodemo.R;
@@ -71,7 +70,8 @@ public class VideoChatViewActivity extends BaseRtcActivity {
         findViewById(R.id.container_tip).postDelayed(new Runnable() {
             @Override
             public void run() {
-                findViewById(R.id.container_tip).setVisibility(View.GONE);
+                if (findViewById(R.id.container_tip) != null)
+                    findViewById(R.id.container_tip).setVisibility(View.GONE);
             }
         }, 5000);
     }

@@ -60,11 +60,13 @@ public class NotificationHelper extends ContextWrapper {
                 PendingIntent.getService(this, 0, endCallIntent, 0);
 
 
-        Intent contentIntent = new Intent(this, VideoChatViewActivity.class);
+        Intent resultIntent = new Intent(this, VideoChatViewActivity.class);
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addParentStack(MainActivity.class);
-        stackBuilder.addNextIntent(contentIntent);
-        PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+        stackBuilder.addNextIntent(new Intent(this, MainActivity.class));
+        stackBuilder.addNextIntentWithParentStack(resultIntent);
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_CANCEL_CURRENT);
+
 
         return new NotificationCompat.Builder(getApplicationContext(), CALL_STATUS_CHANNEL)
                 .setContentTitle(title)
@@ -73,7 +75,7 @@ public class NotificationHelper extends ContextWrapper {
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setWhen(0)
                 .setOngoing(true)
-                .setContentIntent(pendingIntent)
+                .setContentIntent(resultPendingIntent)
                 .addAction(0, "End Call", endCallPendingIntent)
                 .setAutoCancel(true);
     }
