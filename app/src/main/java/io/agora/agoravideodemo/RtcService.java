@@ -34,9 +34,7 @@ public class RtcService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        startService(new Intent(this, RtcService.class));
         initializeAgoraEngine();
-
         mNotificationHelper = new NotificationHelper(this);
     }
 
@@ -55,13 +53,12 @@ public class RtcService extends Service {
     }
 
     public void stopRtcService() {
-        RtcEngine.destroy();
-        mRtcEngine = null;
-        stopForeground(true);
+        stopSelf();
     }
 
     public void joinChannelRequested() {
-        Notification notification = mNotificationHelper.getNotification1("OnGoing Call", "Tap to return").build();
+        startService(new Intent(this, RtcService.class));
+        Notification notification = mNotificationHelper.getNotification1("Agora call on going", "Tap to return").build();
         mNotificationHelper.notify(NOTIFICATION_ID, notification);
         startForeground(NOTIFICATION_ID, notification);
     }
@@ -128,8 +125,15 @@ public class RtcService extends Service {
 
     @Override
     public void onDestroy() {
-        stopRtcService();
+        releaseResource();
         super.onDestroy();
+    }
+
+    private void releaseResource() {
+        clearLastRemoteUserID(this);
+        RtcEngine.destroy();
+        mRtcEngine = null;
+        stopForeground(true);
     }
 
     /**
@@ -148,8 +152,12 @@ public class RtcService extends Service {
         PreferenceManager.getDefaultSharedPreferences(context).edit().putInt("lastUserId", lastUserId).apply();
     }
 
+    public static void clearLastRemoteUserID(Context context) {
+        PreferenceManager.getDefaultSharedPreferences(context).edit().remove("lastUserId").apply();
+    }
+
 
     public static int getLastUserID(Context context) {
-        return PreferenceManager.getDefaultSharedPreferences(context).getInt("lastUserId", 0);
+        return PreferenceManager.getDefaultSharedPreferences(context).getInt("lastUserId", -1);
     }
 }

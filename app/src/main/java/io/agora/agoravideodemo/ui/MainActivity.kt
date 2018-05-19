@@ -2,14 +2,31 @@ package io.agora.agoravideodemo.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import io.agora.agoravideodemo.R
+import io.agora.agoravideodemo.base.BaseRtcActivity
 import io.agora.agoravideodemo.ui.VideoChatViewActivity.CHAT_ROOM_KEY
+import io.agora.rtc.RtcEngine
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseRtcActivity() {
+
+    override fun onRtcServiceConnected(rtcEngine: RtcEngine?) {
+        on_call_tv.setOnClickListener { launchVideoChatActivity() }
+        if (rtcEngine != null && rtcEngine.callId != null) {
+            on_call_tv.visibility = View.VISIBLE
+        } else {
+            on_call_tv.visibility = View.GONE
+        }
+    }
+
+    private fun launchVideoChatActivity() {
+        startActivity(Intent(this, VideoChatViewActivity::class.java)
+                .apply { putExtra(CHAT_ROOM_KEY, "demo_1") })
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -17,13 +34,7 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(toolbar)
 
-        fab.setOnClickListener { view ->
-            //            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                    .setAction("Action", null).show()
-
-            startActivity(Intent(this, VideoChatViewActivity::class.java)
-                    .apply { putExtra(CHAT_ROOM_KEY, "demo_1") })
-        }
+        join_call.setOnClickListener { launchVideoChatActivity() }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

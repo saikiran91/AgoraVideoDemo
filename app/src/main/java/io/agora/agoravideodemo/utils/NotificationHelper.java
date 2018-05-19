@@ -10,9 +10,12 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 
 import io.agora.agoravideodemo.R;
 import io.agora.agoravideodemo.RtcService;
+import io.agora.agoravideodemo.ui.MainActivity;
+import io.agora.agoravideodemo.ui.VideoChatViewActivity;
 
 
 /**
@@ -56,12 +59,21 @@ public class NotificationHelper extends ContextWrapper {
         PendingIntent endCallPendingIntent =
                 PendingIntent.getService(this, 0, endCallIntent, 0);
 
+
+        Intent contentIntent = new Intent(this, VideoChatViewActivity.class);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addParentStack(MainActivity.class);
+        stackBuilder.addNextIntent(contentIntent);
+        PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
         return new NotificationCompat.Builder(getApplicationContext(), CALL_STATUS_CHANNEL)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setSmallIcon(getSmallIcon())
-                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setWhen(0)
                 .setOngoing(true)
+                .setContentIntent(pendingIntent)
                 .addAction(0, "End Call", endCallPendingIntent)
                 .setAutoCancel(true);
     }
@@ -82,7 +94,7 @@ public class NotificationHelper extends ContextWrapper {
      * @return The small icon resource id
      */
     private int getSmallIcon() {
-        return android.R.drawable.stat_notify_chat;
+        return R.drawable.ic_notification;
     }
 
     /**

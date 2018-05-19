@@ -10,16 +10,19 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import io.agora.agoravideodemo.R;
 import io.agora.agoravideodemo.RtcService;
 import io.agora.agoravideodemo.base.BaseRtcActivity;
+import io.agora.agoravideodemo.utils.DoubleClickListener;
 import io.agora.agoravideodemo.utils.OnDragTouchListener;
 import io.agora.rtc.Constants;
 import io.agora.rtc.RtcEngine;
@@ -41,7 +44,51 @@ public class VideoChatViewActivity extends BaseRtcActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_chat_view);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        findViewById(R.id.local_video_view_container).setOnTouchListener(new OnDragTouchListener(findViewById(R.id.local_video_view_container)));
+        setupDragAndViewSwitching();
+    }
+
+    private void setupDragAndViewSwitching() {
+
+        View localVideoContainer = findViewById(R.id.local_video_view_container);
+        localVideoContainer.setSoundEffectsEnabled(false);
+        localVideoContainer.setOnTouchListener(new OnDragTouchListener(localVideoContainer));
+        localVideoContainer.setOnClickListener(new DoubleClickListener() {
+            @Override
+            public void onDoubleClick(View v) {
+                switchVideoContainers();
+            }
+        });
+
+        findViewById(R.id.container_tip).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) v.performClick();
+                findViewById(R.id.container_tip).setVisibility(View.GONE);
+                return false;
+            }
+        });
+
+        findViewById(R.id.container_tip).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                findViewById(R.id.container_tip).setVisibility(View.GONE);
+            }
+        }, 5000);
+    }
+
+    private void switchVideoContainers() {
+        FrameLayout localContainer = findViewById(R.id.local_video_view_container);
+        FrameLayout remoteContainer = findViewById(R.id.remote_video_view_container);
+
+        SurfaceView surfaceView1 = (SurfaceView) localContainer.getChildAt(0);
+        SurfaceView surfaceView2 = (SurfaceView) remoteContainer.getChildAt(0);
+
+        localContainer.removeAllViews();
+        remoteContainer.removeAllViews();
+
+        if (surfaceView2 != null) localContainer.addView(surfaceView2);
+        if (surfaceView1 != null) remoteContainer.addView(surfaceView1);
+
     }
 
     private void initAgoraEngineAndJoinChannel() {
@@ -162,10 +209,10 @@ public class VideoChatViewActivity extends BaseRtcActivity {
     // Tutorial Step 3
     private void setupLocalVideo() {
         FrameLayout container = findViewById(R.id.local_video_view_container);
-        SurfaceView surfaceView = RtcEngine.CreateRendererView(getBaseContext());
-        surfaceView.setZOrderMediaOverlay(true);
-        container.addView(surfaceView);
-        mRtcEngine.setupLocalVideo(new VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_ADAPTIVE, 0));
+        SurfaceView localSurfaceView = RtcEngine.CreateRendererView(getBaseContext());
+        localSurfaceView.setZOrderMediaOverlay(true);
+        container.addView(localSurfaceView);
+        mRtcEngine.setupLocalVideo(new VideoCanvas(localSurfaceView, VideoCanvas.RENDER_MODE_ADAPTIVE, 0));
     }
 
     // Tutorial Step 4
@@ -176,7 +223,9 @@ public class VideoChatViewActivity extends BaseRtcActivity {
         if (mRtcEngine.getCallId() == null) {
             mRtcEngine.joinChannel(null, roomId, "Extra Optional Data", 0); // if you do not specify the uid, we will generate the uid for you
         } else {
-            setupRemoteVideo(RtcService.getLastUserID(this));
+            int lastRemoteUserID = RtcService.getLastUserID(this);
+            //lastRemoteUserID != -1 is to make sure it is not connected to non existing user
+            if (lastRemoteUserID != -1) setupRemoteVideo(lastRemoteUserID);
         }
         joinChannelRequested();
     }
@@ -191,12 +240,12 @@ public class VideoChatViewActivity extends BaseRtcActivity {
             return;
         }
 
-        SurfaceView surfaceView = RtcEngine.CreateRendererView(getBaseContext());
-        container.addView(surfaceView);
+        SurfaceView remoteSurfaceView = RtcEngine.CreateRendererView(getBaseContext());
+        container.addView(remoteSurfaceView);
 
-        mRtcEngine.setupRemoteVideo(new VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_ADAPTIVE, uid));
+        mRtcEngine.setupRemoteVideo(new VideoCanvas(remoteSurfaceView, VideoCanvas.RENDER_MODE_ADAPTIVE, uid));
 
-        surfaceView.setTag(uid); // for mark purpose
+        remoteSurfaceView.setTag(uid); // for mark purpose
         View tipMsg = findViewById(R.id.quick_tips_when_use_agora_sdk); // optional UI
         tipMsg.setVisibility(View.GONE);
     }

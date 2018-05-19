@@ -125,6 +125,7 @@ public class OnDragTouchListener implements View.OnTouchListener {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_CANCEL:
                 case MotionEvent.ACTION_UP:
+                    v.performClick();
                     onDragFinish();
                     break;
                 case MotionEvent.ACTION_MOVE:
@@ -147,6 +148,7 @@ public class OnDragTouchListener implements View.OnTouchListener {
                     return true;
             }
         }
+
         return false;
     }
 
