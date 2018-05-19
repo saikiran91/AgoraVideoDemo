@@ -83,11 +83,18 @@ public class VideoChatViewActivity extends BaseRtcActivity {
         SurfaceView surfaceView1 = (SurfaceView) localContainer.getChildAt(0);
         SurfaceView surfaceView2 = (SurfaceView) remoteContainer.getChildAt(0);
 
-        localContainer.removeAllViews();
-        remoteContainer.removeAllViews();
+        localContainer.removeView(surfaceView1);
+        if (surfaceView1 != null) {
+            surfaceView1.setZOrderMediaOverlay(false);
+            remoteContainer.addView(surfaceView1);
+        }
 
-        if (surfaceView2 != null) localContainer.addView(surfaceView2);
-        if (surfaceView1 != null) remoteContainer.addView(surfaceView1);
+        remoteContainer.removeView(surfaceView2);
+        if (surfaceView2 != null) {
+            surfaceView2.setZOrderMediaOverlay(true);
+            localContainer.addView(surfaceView2);
+        }
+
 
     }
 
