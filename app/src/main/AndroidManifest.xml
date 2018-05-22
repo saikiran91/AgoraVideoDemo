@@ -19,6 +19,7 @@
         <activity
             android:name=".ui.MainActivity"
             android:label="@string/app_name"
+            android:launchMode="singleTask"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,6 +29,7 @@
         </activity>
         <activity
             android:name=".ui.VideoChatViewActivity"
+            android:launchMode="singleTask"
             android:parentActivityName=".ui.MainActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.FullScreenVideoTheme" />
@@ -36,6 +38,11 @@
             android:name=".RtcService"
             android:enabled="true"
             android:exported="true" />
+
+        <activity
+            android:name=".ui.NotesActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateVisible" />
     </application>
 
 </manifest>

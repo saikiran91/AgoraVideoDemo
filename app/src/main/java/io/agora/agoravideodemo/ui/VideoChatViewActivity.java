@@ -36,12 +36,17 @@ public class VideoChatViewActivity extends BaseRtcActivity {
     private static final int PERMISSION_REQ_ID_CAMERA = PERMISSION_REQ_ID_RECORD_AUDIO + 1;
 
     private RtcEngine mRtcEngine;// Tutorial Step 1
+    private String mRoomId;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_chat_view);
+
+        String roomId = getIntent().getStringExtra(CHAT_ROOM_KEY);
+        if (roomId != null) mRoomId = roomId;
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setupDragAndViewSwitching();
     }
@@ -202,6 +207,11 @@ public class VideoChatViewActivity extends BaseRtcActivity {
         finish();
     }
 
+    public void onNotesClicked(View view) {
+        finish();
+        startActivity(new Intent(this, NotesActivity.class));
+    }
+
     // Tutorial Step 1
     private void initializeAgoraEngine() {
         mRtcEngine = getRtcEngine();
@@ -225,10 +235,8 @@ public class VideoChatViewActivity extends BaseRtcActivity {
     // Tutorial Step 4
     private void joinChannel() {
         Log.d(LOG_TAG, "joinChannel mRtcEngine.getCallId() = " + mRtcEngine.getCallId());
-        Intent intent = getIntent();
-        String roomId = intent.getStringExtra(CHAT_ROOM_KEY);
         if (mRtcEngine.getCallId() == null) {
-            mRtcEngine.joinChannel(null, roomId, "Extra Optional Data", 0); // if you do not specify the uid, we will generate the uid for you
+            mRtcEngine.joinChannel(null, mRoomId, "Extra Optional Data", 0); // if you do not specify the uid, we will generate the uid for you
         } else {
             int lastRemoteUserID = RtcService.getLastUserID(this);
             //lastRemoteUserID != -1 is to make sure it is not connected to non existing user
@@ -302,7 +310,6 @@ public class VideoChatViewActivity extends BaseRtcActivity {
 
     @Override
     public void onCallEnded() {
-        super.onCallEnded();
         finish();
     }
 }

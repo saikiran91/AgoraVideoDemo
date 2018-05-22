@@ -13,14 +13,13 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 
 class MainActivity : BaseRtcActivity() {
+    override fun onCallEnded() {
+        on_call_tv.visibility = if (isCallOnGoing) View.VISIBLE else View.GONE
+    }
 
     override fun onRtcServiceConnected(rtcEngine: RtcEngine?) {
         on_call_tv.setOnClickListener { launchVideoChatActivity() }
-        if (rtcEngine != null && rtcEngine.callId != null) {
-            on_call_tv.visibility = View.VISIBLE
-        } else {
-            on_call_tv.visibility = View.GONE
-        }
+        on_call_tv.visibility = if (isCallOnGoing) View.VISIBLE else View.GONE
     }
 
     private fun launchVideoChatActivity() {

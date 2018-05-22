@@ -118,9 +118,7 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
 
     abstract public void onRtcServiceConnected(RtcEngine rtcEngine);
 
-    public void onCallEnded() {
-        //Implement in client if required
-    }
+    abstract public void onCallEnded();
 
     public void onRemoteUserVideoMuted(int uid, boolean muted) {
         //Implement in client if required
@@ -146,5 +144,9 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
         Intent endCallIntent = new Intent(this, RtcService.class);
         endCallIntent.setAction(RtcService.ACTION_END_CALL);
         startService(endCallIntent);
+    }
+
+    final public Boolean isCallOnGoing() {
+        return getRtcEngine() != null && getRtcEngine().getCallId() != null;
     }
 }

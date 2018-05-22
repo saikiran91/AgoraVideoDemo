@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">Agora Video Demo</string>
     <string name="action_settings">Settings</string>
-    <string name="agora_app_id">4073f35686694b87abb2cb2535a6b9ca</string>
+    <string name="action_done">Done</string>
+    <string name="agora_app_id">Your App ID</string>
     <string name="noti_channel_call">Ongoing Call Status</string>
+    <string name="notes_toolbar_title">Notes</string>
 </resources>

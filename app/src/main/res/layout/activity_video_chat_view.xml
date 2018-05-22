@@ -84,6 +84,14 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="10"
+            android:onClick="onNotesClicked"
+            android:scaleType="centerInside"
+            android:src="@drawable/btn_notes" />
+
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="10"
             android:onClick="onEncCallClicked"
             android:scaleType="centerInside"
             android:src="@drawable/btn_end_call" />
