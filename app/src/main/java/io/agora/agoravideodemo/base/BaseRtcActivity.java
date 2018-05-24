@@ -93,7 +93,8 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
                     setupRemoteVideo(uid);
                     break;
                 case USER_OFFLINE:
-                    onRemoteUserLeft();
+                    uid = intent.getIntExtra("uid", 0);
+                    onRemoteUserLeft(uid);
                     break;
                 case USER_MUTE_VIDEO:
                     uid = intent.getIntExtra("uid", 0);
@@ -105,12 +106,19 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
                     onRtcError("Rtc Event error " + error + " Please try again.");
                     break;
 
+                case ON_USER_JOINED:
+                    uid = intent.getIntExtra("uid", 0);
+                    onUserJoined(uid);
+                    break;
+
                 case CALL_ENDED:
                     onCallEnded();
                     break;
             }
         }
     };
+
+
 
     public RtcEngine getRtcEngine() {
         return mService.getRtcEngine();
@@ -124,7 +132,7 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
         //Implement in client if required
     }
 
-    public void onRemoteUserLeft() {
+    public void onRemoteUserLeft(int uid) {
         //Implement in client if required
     }
 
@@ -133,6 +141,9 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
     }
 
     public void onRtcError(String error) {
+        //Implement in client if required
+    }
+    public void onUserJoined(int uid) {
         //Implement in client if required
     }
 

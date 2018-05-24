@@ -9,8 +9,8 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
@@ -20,9 +20,8 @@ import android.widget.Toast;
 
 import io.agora.agoravideodemo.R;
 import io.agora.agoravideodemo.RtcService;
+import io.agora.agoravideodemo.adapter.VideoViewAdapter;
 import io.agora.agoravideodemo.base.BaseRtcActivity;
-import io.agora.agoravideodemo.utils.DoubleClickListener;
-import io.agora.agoravideodemo.utils.OnDragTouchListener;
 import io.agora.rtc.Constants;
 import io.agora.rtc.RtcEngine;
 import io.agora.rtc.video.VideoCanvas;
@@ -38,6 +37,8 @@ public class VideoChatViewActivity extends BaseRtcActivity {
     private RtcEngine mRtcEngine;// Tutorial Step 1
     private String mRoomId;
 
+    private VideoViewAdapter mVideoViewAdapter = new VideoViewAdapter();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,13 +50,15 @@ public class VideoChatViewActivity extends BaseRtcActivity {
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setupDragAndViewSwitching();
+
+        RecyclerView mListView = findViewById(R.id.video_list);
+        mListView.setAdapter(mVideoViewAdapter);
+
     }
 
     private void setupDragAndViewSwitching() {
 
-        View localVideoContainer = findViewById(R.id.local_video_view_container);
-        localVideoContainer.setSoundEffectsEnabled(false);
-        localVideoContainer.setOnTouchListener(new OnDragTouchListener(localVideoContainer));
+      /*  View localVideoContainer = findViewById(R.id.local_video_view_container);
         localVideoContainer.setOnClickListener(new DoubleClickListener() {
             @Override
             public void onDoubleClick(View v) {
@@ -78,11 +81,11 @@ public class VideoChatViewActivity extends BaseRtcActivity {
                 if (findViewById(R.id.container_tip) != null)
                     findViewById(R.id.container_tip).setVisibility(View.GONE);
             }
-        }, 5000);
+        }, 5000);*/
     }
 
     private void switchVideoContainers() {
-        FrameLayout localContainer = findViewById(R.id.local_video_view_container);
+       /* FrameLayout localContainer = findViewById(R.id.local_video_view_container);
         FrameLayout remoteContainer = findViewById(R.id.remote_video_view_container);
 
         SurfaceView surfaceView1 = (SurfaceView) localContainer.getChildAt(0);
@@ -99,7 +102,7 @@ public class VideoChatViewActivity extends BaseRtcActivity {
             surfaceView2.setZOrderMediaOverlay(true);
             localContainer.addView(surfaceView2);
         }
-
+*/
 
     }
 
@@ -110,6 +113,8 @@ public class VideoChatViewActivity extends BaseRtcActivity {
             setupVideoProfile();         // Tutorial Step 2
             setupLocalVideo();           // Tutorial Step 3
             joinChannel();               // Tutorial Step 4
+
+            findViewById(R.id.mute).performClick();
         }
     }
 
@@ -176,9 +181,8 @@ public class VideoChatViewActivity extends BaseRtcActivity {
 
         mRtcEngine.muteLocalVideoStream(iv.isSelected());
 
-        FrameLayout container = findViewById(R.id.local_video_view_container);
+        FrameLayout container = findViewById(R.id.large_video_container);
         SurfaceView surfaceView = (SurfaceView) container.getChildAt(0);
-        surfaceView.setZOrderMediaOverlay(!iv.isSelected());
         surfaceView.setVisibility(iv.isSelected() ? View.GONE : View.VISIBLE);
     }
 
@@ -225,9 +229,8 @@ public class VideoChatViewActivity extends BaseRtcActivity {
 
     // Tutorial Step 3
     private void setupLocalVideo() {
-        FrameLayout container = findViewById(R.id.local_video_view_container);
+        FrameLayout container = findViewById(R.id.large_video_container);
         SurfaceView localSurfaceView = RtcEngine.CreateRendererView(getBaseContext());
-        localSurfaceView.setZOrderMediaOverlay(true);
         container.addView(localSurfaceView);
         mRtcEngine.setupLocalVideo(new VideoCanvas(localSurfaceView, VideoCanvas.RENDER_MODE_ADAPTIVE, 0));
     }
@@ -248,22 +251,17 @@ public class VideoChatViewActivity extends BaseRtcActivity {
     // Tutorial Step 5
     @Override
     public void setupRemoteVideo(int uid) {
-
-        FrameLayout container = findViewById(R.id.remote_video_view_container);
-
-        if (container.getChildCount() >= 1) {
-            return;
-        }
-
         SurfaceView remoteSurfaceView = RtcEngine.CreateRendererView(getBaseContext());
-        container.addView(remoteSurfaceView);
-
-        mRtcEngine.setupRemoteVideo(new VideoCanvas(remoteSurfaceView, VideoCanvas.RENDER_MODE_ADAPTIVE, uid));
-
         remoteSurfaceView.setTag(uid); // for mark purpose
-        View tipMsg = findViewById(R.id.quick_tips_when_use_agora_sdk); // optional UI
-        tipMsg.setVisibility(View.GONE);
+        boolean result = mVideoViewAdapter.addView(remoteSurfaceView, uid);
+        if (result) {
+            mRtcEngine.setupRemoteVideo(new VideoCanvas(remoteSurfaceView, VideoCanvas.RENDER_MODE_ADAPTIVE, uid));
+            View tipMsg = findViewById(R.id.quick_tips_when_use_agora_sdk); // optional UI
+            tipMsg.setVisibility(View.GONE);
+        }
     }
+
+
 
     // Tutorial Step 6
     private void leaveChannel() {
@@ -273,12 +271,12 @@ public class VideoChatViewActivity extends BaseRtcActivity {
 
     // Tutorial Step 7
     @Override
-    public void onRemoteUserLeft() {
-        FrameLayout container = findViewById(R.id.remote_video_view_container);
-        container.removeAllViews();
-
-        View tipMsg = findViewById(R.id.quick_tips_when_use_agora_sdk); // optional UI
-        tipMsg.setVisibility(View.VISIBLE);
+    public void onRemoteUserLeft(int uid) {
+        boolean result = mVideoViewAdapter.removeView(uid);
+        if (result && mVideoViewAdapter.getItemCount() == 0) {
+            View tipMsg = findViewById(R.id.quick_tips_when_use_agora_sdk); // optional UI
+            tipMsg.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -291,14 +289,7 @@ public class VideoChatViewActivity extends BaseRtcActivity {
     // Tutorial Step 10
     @Override
     public void onRemoteUserVideoMuted(int uid, boolean muted) {
-        FrameLayout container = findViewById(R.id.remote_video_view_container);
-
-        SurfaceView surfaceView = (SurfaceView) container.getChildAt(0);
-
-        Object tag = surfaceView.getTag();
-        if (tag != null && (Integer) tag == uid) {
-            surfaceView.setVisibility(muted ? View.GONE : View.VISIBLE);
-        }
+        mVideoViewAdapter.onUserVideoMuted(uid, muted);
     }
 
     @Override

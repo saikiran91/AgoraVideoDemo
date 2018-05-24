@@ -21,7 +21,7 @@ public class RtcService extends Service {
     private static final int NOTIFICATION_ID = 340;
 
 
-    public enum IntentAction {FIRST_REMOTE_VIDEO_DECODED, USER_OFFLINE, USER_MUTE_VIDEO, RTC_ERROR, CALL_ENDED}
+    public enum IntentAction {FIRST_REMOTE_VIDEO_DECODED, USER_OFFLINE, USER_MUTE_VIDEO,ON_USER_JOINED ,RTC_ERROR,CALL_ENDED}
 
     // Binder given to clients
     private final IBinder mBinder = new LocalBinder();
@@ -40,7 +40,7 @@ public class RtcService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent.getAction() != null && intent.getAction().equals(ACTION_END_CALL)) {
+        if (intent!= null && intent.getAction() != null && intent.getAction().equals(ACTION_END_CALL)) {
             notifyEndCallToClients();
             releaseResource();
             stopSelf();
@@ -95,9 +95,17 @@ public class RtcService extends Service {
 
         @Override
         public void onError(int err) {
-            Intent intent = new Intent(IntentAction.RTC_ERROR.name());
             super.onError(err);
+            Intent intent = new Intent(IntentAction.RTC_ERROR.name());
             intent.putExtra("err", err);
+            sendLocalBroadcast(intent);
+        }
+
+        @Override
+        public void onUserJoined(int uid, int elapsed) {
+            super.onUserJoined(uid, elapsed);
+            Intent intent = new Intent(IntentAction.ON_USER_JOINED.name());
+            intent.putExtra("uid", uid);
             sendLocalBroadcast(intent);
         }
     };
