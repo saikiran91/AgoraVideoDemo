@@ -26,7 +26,7 @@ import io.agora.rtc.Constants;
 import io.agora.rtc.RtcEngine;
 import io.agora.rtc.video.VideoCanvas;
 
-public class VideoChatViewActivity extends BaseRtcActivity {
+public class VideoChatViewActivity extends BaseRtcActivity implements VideoViewAdapter.VideoSelectedListener {
 
     private static final String LOG_TAG = VideoChatViewActivity.class.getSimpleName();
     public static final String CHAT_ROOM_KEY = "CHAT_ROOM_KEY";
@@ -37,7 +37,7 @@ public class VideoChatViewActivity extends BaseRtcActivity {
     private RtcEngine mRtcEngine;// Tutorial Step 1
     private String mRoomId;
 
-    private VideoViewAdapter mVideoViewAdapter = new VideoViewAdapter();
+    private VideoViewAdapter mVideoViewAdapter;
 
 
     @Override
@@ -51,8 +51,23 @@ public class VideoChatViewActivity extends BaseRtcActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setupDragAndViewSwitching();
 
+        mVideoViewAdapter = new VideoViewAdapter(this);
         RecyclerView mListView = findViewById(R.id.video_list);
         mListView.setAdapter(mVideoViewAdapter);
+
+    }
+
+    @Override
+    public void onVideoSelected(final View view) {
+//        RecyclerView listView = findViewById(R.id.video_list);
+//        int itemPosition = listView.getChildAdapterPosition(view);
+//        AgSurfaceView agSurfaceView = mVideoViewAdapter.getItem(itemPosition);
+//        FrameLayout largeContainer = findViewById(R.id.large_video_container);
+//        largeContainer.removeAllViews();
+//        if (agSurfaceView.getSurfaceView() != null) {
+//            agSurfaceView.getSurfaceView().setZOrderMediaOverlay(false);
+//            largeContainer.addView(agSurfaceView.getSurfaceView());
+//        }
 
     }
 
@@ -229,9 +244,9 @@ public class VideoChatViewActivity extends BaseRtcActivity {
 
     // Tutorial Step 3
     private void setupLocalVideo() {
-        FrameLayout container = findViewById(R.id.large_video_container);
         SurfaceView localSurfaceView = RtcEngine.CreateRendererView(getBaseContext());
-        container.addView(localSurfaceView);
+        localSurfaceView.setTag(0); // for mark purpose
+        mVideoViewAdapter.addView(localSurfaceView, 0);
         mRtcEngine.setupLocalVideo(new VideoCanvas(localSurfaceView, VideoCanvas.RENDER_MODE_ADAPTIVE, 0));
     }
 
@@ -260,7 +275,6 @@ public class VideoChatViewActivity extends BaseRtcActivity {
             tipMsg.setVisibility(View.GONE);
         }
     }
-
 
 
     // Tutorial Step 6

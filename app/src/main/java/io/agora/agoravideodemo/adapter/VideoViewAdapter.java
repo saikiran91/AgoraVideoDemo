@@ -13,16 +13,30 @@ import java.util.ArrayList;
 
 import io.agora.agoravideodemo.R;
 import io.agora.agoravideodemo.ui.AgSurfaceView;
+import io.agora.agoravideodemo.utils.DoubleClickListener;
 
 public class VideoViewAdapter extends RecyclerView.Adapter<VideoViewAdapter.ViewHolder> {
-    private ArrayList<AgSurfaceView> mVideoList = new ArrayList<>();
     private static final String TAG = "VideoViewAdapter";
+    private VideoSelectedListener videoSelectedListener;
+    private ArrayList<AgSurfaceView> mVideoList = new ArrayList<>();
+
+    public VideoViewAdapter(VideoSelectedListener videoSelectedListener) {
+        this.videoSelectedListener = videoSelectedListener;
+    }
 
     @NonNull
     @Override
     public VideoViewAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
+        final View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_video_container, parent, false);
+
+        view.setOnClickListener(new DoubleClickListener() {
+            @Override
+            public void onDoubleClick(View v) {
+                super.onDoubleClick(v);
+                videoSelectedListener.onVideoSelected(view);
+            }
+        });
         return new ViewHolder(view);
     }
 
@@ -74,11 +88,20 @@ public class VideoViewAdapter extends RecyclerView.Adapter<VideoViewAdapter.View
         }
     }
 
+    public AgSurfaceView getItem(int position) {
+        return mVideoList.get(position);
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         FrameLayout frameLayout;
+
         ViewHolder(View itemView) {
             super(itemView);
             frameLayout = itemView.findViewById(R.id.video_container);
         }
+    }
+
+    public interface VideoSelectedListener{
+        void onVideoSelected(View view);
     }
 }
