@@ -7,11 +7,27 @@ import android.view.SurfaceView;
  **/
 public class AgSurfaceView {
     private SurfaceView surfaceView;
-    private Boolean isVisible;
+    private boolean isVisible;
+    private boolean isSelected;
+    private int uid;
 
-    public AgSurfaceView(SurfaceView surfaceView, boolean visibility) {
+    public AgSurfaceView(SurfaceView surfaceView, boolean visibility, boolean isSelected) {
         this.surfaceView = surfaceView;
         this.isVisible = visibility;
+        this.isSelected = isSelected;
+        uid = (int) surfaceView.getTag();
+    }
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
+    }
+
+    public int getUid() {
+        return uid;
     }
 
     public SurfaceView getSurfaceView() {

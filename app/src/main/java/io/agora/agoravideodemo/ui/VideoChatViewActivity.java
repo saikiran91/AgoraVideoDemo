@@ -13,6 +13,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -59,17 +60,41 @@ public class VideoChatViewActivity extends BaseRtcActivity implements VideoViewA
 
     @Override
     public void onVideoSelected(final View view) {
-//        RecyclerView listView = findViewById(R.id.video_list);
-//        int itemPosition = listView.getChildAdapterPosition(view);
-//        AgSurfaceView agSurfaceView = mVideoViewAdapter.getItem(itemPosition);
-//        FrameLayout largeContainer = findViewById(R.id.large_video_container);
-//        largeContainer.removeAllViews();
-//        if (agSurfaceView.getSurfaceView() != null) {
-//            agSurfaceView.getSurfaceView().setZOrderMediaOverlay(false);
-//            largeContainer.addView(agSurfaceView.getSurfaceView());
-//        }
 
+        //
+        RecyclerView listView = findViewById(R.id.video_list);
+        int itemPosition = listView.getChildAdapterPosition(view);
+        AgSurfaceView agSurfaceView = mVideoViewAdapter.getItem(itemPosition);
+        if (agSurfaceView == null) return;
+
+        //
+        agSurfaceView.setSelected(true);
+        mVideoViewAdapter.notifyItemChanged(itemPosition);
+
+        //
+        FrameLayout largeContainer = findViewById(R.id.large_video_container);
+
+        //Checking for previous surface view
+        View childViewOfLargeContainer = largeContainer.getChildAt(0);
+        if (childViewOfLargeContainer != null) {
+            moveTheViewToVideoList(childViewOfLargeContainer);
+            largeContainer.removeAllViews();
+        }
+
+        if (agSurfaceView.getSurfaceView() != null) {
+            ViewGroup parent = (ViewGroup) agSurfaceView.getSurfaceView().getParent();
+            if (parent != null) {
+                parent.removeAllViews();
+            }
+            agSurfaceView.getSurfaceView().setZOrderMediaOverlay(false);
+            largeContainer.addView(agSurfaceView.getSurfaceView());
+        }
     }
+
+    private void moveTheViewToVideoList(View childViewOfLargeContainer) {
+        mVideoViewAdapter.putViewBack(childViewOfLargeContainer);
+    }
+
 
     private void setupDragAndViewSwitching() {
 
