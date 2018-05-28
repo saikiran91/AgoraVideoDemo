@@ -2,13 +2,13 @@ package io.agora.agoravideodemo;
 
 import android.app.Notification;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+
+import java.util.HashSet;
 
 import io.agora.agoravideodemo.utils.NotificationHelper;
 import io.agora.rtc.IRtcEngineEventHandler;
@@ -19,9 +19,13 @@ public class RtcService extends Service {
     private NotificationHelper mNotificationHelper;
     public static final String ACTION_END_CALL = "end_call";
     private static final int NOTIFICATION_ID = 340;
+    private HashSet<Integer> mCallUser = new HashSet<>();
 
 
-    public enum IntentAction {FIRST_REMOTE_VIDEO_DECODED, USER_OFFLINE, USER_MUTE_VIDEO,ON_USER_JOINED ,RTC_ERROR,CALL_ENDED}
+    public enum IntentAction {
+        FIRST_REMOTE_VIDEO_DECODED, USER_OFFLINE, USER_MUTE_VIDEO,
+        ON_USER_JOINED, ON_AUDIO_VOLUME_INDICATION, ON_ACTIVE_SPEAKER, RTC_ERROR, CALL_ENDED
+    }
 
     // Binder given to clients
     private final IBinder mBinder = new LocalBinder();
@@ -40,7 +44,7 @@ public class RtcService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent!= null && intent.getAction() != null && intent.getAction().equals(ACTION_END_CALL)) {
+        if (intent != null && intent.getAction() != null && intent.getAction().equals(ACTION_END_CALL)) {
             notifyEndCallToClients();
             releaseResource();
             stopSelf();
@@ -63,6 +67,7 @@ public class RtcService extends Service {
     public void initializeAgoraEngine() {
         try {
             mRtcEngine = RtcEngine.create(getBaseContext(), getString(R.string.agora_app_id), mRtcEventHandler);
+            mRtcEngine.enableAudioVolumeIndication(200, 3);
         } catch (Exception e) {
             Log.e(TAG, "Need to check rtc sdk init fatal error", e);
         }
@@ -72,7 +77,7 @@ public class RtcService extends Service {
 
         @Override
         public void onFirstRemoteVideoDecoded(final int uid, int width, int height, int elapsed) {
-            saveLastRemoteUserID(uid, RtcService.this);
+            mCallUser.add(uid);
             Intent intent = new Intent(IntentAction.FIRST_REMOTE_VIDEO_DECODED.name());
             intent.putExtra("uid", uid);
             sendLocalBroadcast(intent);
@@ -83,6 +88,7 @@ public class RtcService extends Service {
             Intent intent = new Intent(IntentAction.USER_OFFLINE.name());
             intent.putExtra("uid", uid);
             sendLocalBroadcast(intent);
+            mCallUser.remove(uid);
         }
 
         @Override
@@ -108,6 +114,14 @@ public class RtcService extends Service {
             intent.putExtra("uid", uid);
             sendLocalBroadcast(intent);
         }
+
+        @Override
+        public void onActiveSpeaker(int uid) {
+            super.onActiveSpeaker(uid);
+            Intent intent = new Intent(IntentAction.ON_ACTIVE_SPEAKER.name());
+            intent.putExtra("uid", uid);
+            sendLocalBroadcast(intent);
+        }
     };
 
     private void sendLocalBroadcast(Intent intent) {
@@ -130,7 +144,7 @@ public class RtcService extends Service {
     }
 
     private void releaseResource() {
-        clearLastRemoteUserID(this);
+        mCallUser.clear();
         RtcEngine.destroy();
         mRtcEngine = null;
         stopForeground(true);
@@ -147,17 +161,8 @@ public class RtcService extends Service {
         }
     }
 
-
-    public static void saveLastRemoteUserID(int lastUserId, Context context) {
-        PreferenceManager.getDefaultSharedPreferences(context).edit().putInt("lastUserId", lastUserId).apply();
+    public HashSet<Integer> getOnCallList() {
+        return mCallUser;
     }
 
-    public static void clearLastRemoteUserID(Context context) {
-        PreferenceManager.getDefaultSharedPreferences(context).edit().remove("lastUserId").apply();
-    }
-
-
-    public static int getLastUserID(Context context) {
-        return PreferenceManager.getDefaultSharedPreferences(context).getInt("lastUserId", -1);
-    }
 }

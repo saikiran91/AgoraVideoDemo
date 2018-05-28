@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -20,7 +21,6 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import io.agora.agoravideodemo.R;
-import io.agora.agoravideodemo.RtcService;
 import io.agora.agoravideodemo.adapter.VideoViewAdapter;
 import io.agora.agoravideodemo.base.BaseRtcActivity;
 import io.agora.rtc.Constants;
@@ -42,7 +42,7 @@ public class VideoChatViewActivity extends BaseRtcActivity implements VideoViewA
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_chat_view);
 
@@ -50,7 +50,6 @@ public class VideoChatViewActivity extends BaseRtcActivity implements VideoViewA
         if (roomId != null) mRoomId = roomId;
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        setupDragAndViewSwitching();
 
         mVideoViewAdapter = new VideoViewAdapter(this);
         RecyclerView mListView = findViewById(R.id.video_list);
@@ -60,12 +59,13 @@ public class VideoChatViewActivity extends BaseRtcActivity implements VideoViewA
 
     @Override
     public void onVideoSelected(final View view) {
+        Log.d(LOG_TAG, "onVideoSelected");
 
         //
         RecyclerView listView = findViewById(R.id.video_list);
         int itemPosition = listView.getChildAdapterPosition(view);
         AgSurfaceView agSurfaceView = mVideoViewAdapter.getItem(itemPosition);
-        if (agSurfaceView == null) return;
+        if (agSurfaceView == null || agSurfaceView.isSelected()) return;
 
         //
         agSurfaceView.setSelected(true);
@@ -95,55 +95,16 @@ public class VideoChatViewActivity extends BaseRtcActivity implements VideoViewA
         mVideoViewAdapter.putViewBack(childViewOfLargeContainer);
     }
 
-
-    private void setupDragAndViewSwitching() {
-
-      /*  View localVideoContainer = findViewById(R.id.local_video_view_container);
-        localVideoContainer.setOnClickListener(new DoubleClickListener() {
-            @Override
-            public void onDoubleClick(View v) {
-                switchVideoContainers();
-            }
-        });
-
-        findViewById(R.id.container_tip).setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_UP) v.performClick();
-                findViewById(R.id.container_tip).setVisibility(View.GONE);
-                return false;
-            }
-        });
-
-        findViewById(R.id.container_tip).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (findViewById(R.id.container_tip) != null)
-                    findViewById(R.id.container_tip).setVisibility(View.GONE);
-            }
-        }, 5000);*/
+    @Override
+    public void onAudioVolumeIndication(int uid, int totalVolume) {
+        super.onAudioVolumeIndication(uid, totalVolume);
+        mVideoViewAdapter.showSpeakerIconIfRequired(uid, totalVolume);
     }
 
-    private void switchVideoContainers() {
-       /* FrameLayout localContainer = findViewById(R.id.local_video_view_container);
-        FrameLayout remoteContainer = findViewById(R.id.remote_video_view_container);
-
-        SurfaceView surfaceView1 = (SurfaceView) localContainer.getChildAt(0);
-        SurfaceView surfaceView2 = (SurfaceView) remoteContainer.getChildAt(0);
-
-        localContainer.removeView(surfaceView1);
-        if (surfaceView1 != null) {
-            surfaceView1.setZOrderMediaOverlay(false);
-            remoteContainer.addView(surfaceView1);
-        }
-
-        remoteContainer.removeView(surfaceView2);
-        if (surfaceView2 != null) {
-            surfaceView2.setZOrderMediaOverlay(true);
-            localContainer.addView(surfaceView2);
-        }
-*/
-
+    @Override
+    public void onActiveSpeaker(int uid) {
+        super.onActiveSpeaker(uid);
+        mVideoViewAdapter.showActiveSpeaker(uid);
     }
 
     private void initAgoraEngineAndJoinChannel() {
@@ -154,7 +115,8 @@ public class VideoChatViewActivity extends BaseRtcActivity implements VideoViewA
             setupLocalVideo();           // Tutorial Step 3
             joinChannel();               // Tutorial Step 4
 
-            findViewById(R.id.mute).performClick();
+//            findViewById(R.id.mute).performClick();
+            showLocalCameraInLargeView();
         }
     }
 
@@ -273,7 +235,26 @@ public class VideoChatViewActivity extends BaseRtcActivity implements VideoViewA
         localSurfaceView.setTag(0); // for mark purpose
         mVideoViewAdapter.addView(localSurfaceView, 0);
         mRtcEngine.setupLocalVideo(new VideoCanvas(localSurfaceView, VideoCanvas.RENDER_MODE_ADAPTIVE, 0));
+
     }
+
+    private void showLocalCameraInLargeView() {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (!VideoChatViewActivity.this.isDestroyed()) {
+                    try {
+                        RecyclerView listView = findViewById(R.id.video_list);
+                        View localVideo = listView.getLayoutManager().findViewByPosition(0);
+                        onVideoSelected(localVideo);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }, 800);
+    }
+
 
     // Tutorial Step 4
     private void joinChannel() {
@@ -281,12 +262,12 @@ public class VideoChatViewActivity extends BaseRtcActivity implements VideoViewA
         if (mRtcEngine.getCallId() == null) {
             mRtcEngine.joinChannel(null, mRoomId, "Extra Optional Data", 0); // if you do not specify the uid, we will generate the uid for you
         } else {
-            int lastRemoteUserID = RtcService.getLastUserID(this);
+            for (int userId : getOnCallList()) setupRemoteVideo(userId);
             //lastRemoteUserID != -1 is to make sure it is not connected to non existing user
-            if (lastRemoteUserID != -1) setupRemoteVideo(lastRemoteUserID);
         }
         joinChannelRequested();
     }
+
 
     // Tutorial Step 5
     @Override

@@ -15,6 +15,7 @@
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/video_list"
+        android:background="#D9090B0F"
         android:layout_width="wrap_content"
         android:layout_height="140dp"
         android:layout_marginBottom="16dp"
@@ -34,7 +35,7 @@
         android:layout_marginStart="20dp"
         android:gravity="center_vertical|start"
         android:textColor="@android:color/darker_gray"
-        android:text="1. Waiting for remote users\n2. This demo only supports 1v1 video calling" />
+        android:text="Waiting for remote users.."/>
 
     <LinearLayout
         android:id="@+id/action_slider"

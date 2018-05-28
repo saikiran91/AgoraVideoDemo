@@ -6,9 +6,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+
+import java.util.HashSet;
 
 import io.agora.agoravideodemo.RtcService;
 import io.agora.rtc.RtcEngine;
@@ -17,7 +22,7 @@ import io.agora.rtc.RtcEngine;
  * Created by saiki on 18-05-2018.
  **/
 abstract public class BaseRtcActivity extends AppCompatActivity {
-    RtcService mService;
+    private RtcService mService;
     public boolean mBound = false;
 
     @Override
@@ -105,20 +110,20 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
                     int error = intent.getIntExtra("err", 0);
                     onRtcError("Rtc Event error " + error + " Please try again.");
                     break;
-
                 case ON_USER_JOINED:
                     uid = intent.getIntExtra("uid", 0);
                     onUserJoined(uid);
                     break;
-
+                case ON_ACTIVE_SPEAKER:
+                    uid = intent.getIntExtra("uid", 0);
+                    onActiveSpeaker(uid);
+                    break;
                 case CALL_ENDED:
                     onCallEnded();
                     break;
             }
         }
     };
-
-
 
     public RtcEngine getRtcEngine() {
         return mService.getRtcEngine();
@@ -127,6 +132,13 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
     abstract public void onRtcServiceConnected(RtcEngine rtcEngine);
 
     abstract public void onCallEnded();
+
+    public void onActiveSpeaker(int uid) {
+    }
+
+    public void onAudioVolumeIndication(int uid, int totalVolume) {
+        //Implement in client if required
+    }
 
     public void onRemoteUserVideoMuted(int uid, boolean muted) {
         //Implement in client if required
@@ -143,12 +155,17 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
     public void onRtcError(String error) {
         //Implement in client if required
     }
+
     public void onUserJoined(int uid) {
         //Implement in client if required
     }
 
     final public void joinChannelRequested() {
         if (mBound) mService.joinChannelRequested();
+    }
+
+    public HashSet<Integer> getOnCallList() {
+        return mBound ? mService.getOnCallList() : new HashSet<Integer>();
     }
 
     final public void stopRtcService() {

@@ -18,7 +18,7 @@ public class NotesActivity extends BaseRtcActivity {
     private TextView mOnCallTv;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notes);
         mOnCallTv = findViewById(R.id.on_call_tv);

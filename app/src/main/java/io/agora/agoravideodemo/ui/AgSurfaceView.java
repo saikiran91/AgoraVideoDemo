@@ -10,11 +10,13 @@ public class AgSurfaceView {
     private boolean isVisible;
     private boolean isSelected;
     private int uid;
+    private boolean showSpeaker;
 
-    public AgSurfaceView(SurfaceView surfaceView, boolean visibility, boolean isSelected) {
+    public AgSurfaceView(SurfaceView surfaceView, boolean visibility, boolean isSelected, boolean showSpeaker) {
         this.surfaceView = surfaceView;
         this.isVisible = visibility;
         this.isSelected = isSelected;
+        this.showSpeaker = showSpeaker;
         uid = (int) surfaceView.getTag();
     }
 
@@ -40,5 +42,13 @@ public class AgSurfaceView {
 
     public void setVisible(boolean visible) {
         this.isVisible = visible;
+    }
+
+    public boolean isShowSpeaker() {
+        return showSpeaker;
+    }
+
+    public void setShowSpeaker(boolean showSpeaker) {
+        this.showSpeaker = showSpeaker;
     }
 }
