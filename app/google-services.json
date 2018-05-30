@@ -1,0 +1,107 @@
+{
+  "project_info": {
+    "project_number": "906498791230",
+    "firebase_url": "https://caavo-demo.firebaseio.com",
+    "project_id": "caavo-demo",
+    "storage_bucket": "caavo-demo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:906498791230:android:fe1f36dd9edfefa4",
+        "android_client_info": {
+          "package_name": "io.agora.agorademo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "906498791230-04r7jidohpjlkfqsq4dfu4elhi8nur9q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.agora.agorademo",
+            "certificate_hash": "f6787fd3e7501e30b4c31cd7f9d87a168edf920d"
+          }
+        },
+        {
+          "client_id": "906498791230-imk8ia69vjk2ai237t85v8j5k509bn9a.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "906498791230-imk8ia69vjk2ai237t85v8j5k509bn9a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVwVVVtyoYpK8EBjgUuacEtovCABtHQgA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "906498791230-imk8ia69vjk2ai237t85v8j5k509bn9a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:906498791230:android:4c03af78b68dc420",
+        "android_client_info": {
+          "package_name": "io.agora.agoravideodemo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "906498791230-bdg57tsnb7rmiu7jto9avuguvfb31elb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.agora.agoravideodemo",
+            "certificate_hash": "f6787fd3e7501e30b4c31cd7f9d87a168edf920d"
+          }
+        },
+        {
+          "client_id": "906498791230-imk8ia69vjk2ai237t85v8j5k509bn9a.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "906498791230-imk8ia69vjk2ai237t85v8j5k509bn9a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVwVVVtyoYpK8EBjgUuacEtovCABtHQgA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "906498791230-imk8ia69vjk2ai237t85v8j5k509bn9a.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
