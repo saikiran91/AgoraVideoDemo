@@ -15,61 +15,84 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
-        android:layout_marginTop="16dp"
-        android:text="Phone number sign-in"
+        android:text="Login/Register"
         android:textAppearance="@style/TextAppearance.AppCompat.Headline"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/country_code_ti"
-        android:layout_width="65dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/phone_auth_tv">
-
-        <EditText
-            android:id="@+id/country_code_et"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:ems="3"
-            android:hint="+91"
-            android:inputType="phone"
-            android:text="+" />
-    </android.support.design.widget.TextInputLayout>
 
     <android.support.design.widget.TextInputLayout
-        android:id="@+id/phone_l"
+        android:id="@+id/name_ti"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/country_code_ti"
-        app:layout_constraintTop_toTopOf="@+id/country_code_ti">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/phone_auth_tv"
+        app:layout_constraintVertical_bias="0.0">
 
         <EditText
-            android:id="@+id/phone"
+            android:id="@+id/name_et"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Phone number"
-            android:inputType="phone" />
+            android:hint="Preferred name"
+            android:imeOptions="actionNext"
+            android:inputType="textPersonName" />
+    </android.support.design.widget.TextInputLayout>
+
+
+    <com.rilixtech.CountryCodePicker
+        android:id="@+id/country_code_picker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:paddingBottom="16dp"
+        android:paddingTop="16dp"
+        app:ccp_arrowSize="16sp"
+        app:ccp_defaultNameCode="IN"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/name_ti"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/phone_ti"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/country_code_picker"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/country_code_picker"
+        app:layout_constraintTop_toTopOf="@+id/country_code_picker">
+
+        <EditText
+            android:id="@+id/number_et"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter phone number"
+            android:imeOptions="actionDone"
+            android:inputType="numberSigned" />
     </android.support.design.widget.TextInputLayout>
 
     <Button
-        android:id="@+id/send_code_b"
+        android:id="@+id/send_code_btn"
         style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
         android:layout_marginTop="16dp"
+        android:onClick="sendCodeOnClick"
+        android:padding="18dp"
         android:text="Send Code"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/phone_l" />
+        app:layout_constraintTop_toBottomOf="@+id/phone_ti" />
 
 
     <android.support.design.widget.TextInputLayout
@@ -88,16 +111,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Auth code"
+            android:imeOptions="actionDone"
             android:inputType="numberPassword" />
     </android.support.design.widget.TextInputLayout>
 
     <Button
-        android:id="@+id/verify_code_b"
+        android:id="@+id/verify_code_btn"
         style="@style/Widget.AppCompat.Button.Colored"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
+        android:layout_marginTop="16dp"
+        android:onClick="verifyCodeOnClick"
+        android:padding="18dp"
         android:text="Verify Code"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -107,7 +132,7 @@
         android:id="@+id/verification_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:clickable="true"
         android:focusable="true"
         android:text="Verification code sent to "
@@ -121,6 +146,9 @@
         android:id="@+id/change_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="?selectableItemBackground"
+        android:onClick="changePhoneNumber"
         android:text="Change"
         android:textColor="@color/colorAccent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -129,13 +157,14 @@
         app:layout_constraintTop_toTopOf="@+id/verification_tv" />
 
     <Button
-        android:id="@+id/auth_logout_b"
+        android:id="@+id/auth_logout_btn"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginTop="16dp"
+        android:onClick="signOuOnClick"
         android:text="Logout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -146,7 +175,9 @@
         android:id="@+id/send_code_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="phone_auth_tv,send_code_b,phone_l"
+        android:visibility="visible"
+        app:constraint_referenced_ids="phone_auth_tv,
+        send_code_btn,phone_ti,country_code_picker,name_ti"
         tools:visibility="visible" />
 
 
@@ -154,7 +185,8 @@
         android:id="@+id/verification_code_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="auth_ti,verify_code_b,change_tv,verification_tv"
+        android:visibility="gone"
+        app:constraint_referenced_ids="auth_ti,verify_code_btn,change_tv,verification_tv"
         tools:visibility="gone" />
 
 
@@ -162,7 +194,8 @@
         android:id="@+id/logout_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="auth_logout_b"
+        android:visibility="gone"
+        app:constraint_referenced_ids="auth_logout_btn"
         tools:visibility="gone" />
 
     <ProgressBar

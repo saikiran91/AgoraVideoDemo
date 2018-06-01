@@ -1,16 +1,14 @@
 package io.agora.agoravideodemo;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -25,141 +23,85 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.rilixtech.CountryCodePicker;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static io.agora.agoravideodemo.utils.CommonUtilsKt.hideKeyboard;
 
 public class FirebasePhoneNumAuthActivity extends AppCompatActivity {
 
-    private String uniqueIdentifier;
-    private static final String UNIQUE_ID = "UNIQUE_ID";
-    private static final long ONE_HOUR_MILLI = 60 * 60 * 1000;
-
     private static final String TAG = "FirebasePhoneNumAuth";
-
-    private PhoneAuthProvider.OnVerificationStateChangedCallbacks callbacks;
-    private FirebaseAuth firebaseAuth;
-
-    private String phoneNumber;
-    private Button sendCodeButton;
-    private Button verifyCodeButton;
-    private Button signOutButton;
-
-    private EditText phoneNum;
-    private EditText verifyCodeET;
-
-    private FirebaseFirestore firestoreDB;
-    private FirebaseUser firebaseUser;
+    private String verificationId;
+    private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+    private FirebaseFirestore firestoreDB = FirebaseFirestore.getInstance();
+    private EditText phoneEt, verifyCodeEt;
     private ProgressBar progressBar;
+    private CountryCodePicker countryCodePicker;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.firebase_phone_auth_layout);
 
-        sendCodeButton = findViewById(R.id.send_code_b);
-        verifyCodeButton = findViewById(R.id.verify_code_b);
-        signOutButton = findViewById(R.id.auth_logout_b);
         progressBar = findViewById(R.id.progress_bar);
+        countryCodePicker = findViewById(R.id.country_code_picker);
+        phoneEt = findViewById(R.id.number_et);
+        verifyCodeEt = findViewById(R.id.auth_et);
 
-        phoneNum = findViewById(R.id.phone);
-        verifyCodeET = findViewById(R.id.auth_et);
+        if (firebaseAuth.getCurrentUser() != null)
+            showSignoutGroup();
+    }
 
-        addOnClickListeners();
 
-        firebaseAuth = FirebaseAuth.getInstance();
-        firestoreDB = FirebaseFirestore.getInstance();
+    public void sendCodeOnClick(View view) {
+        hideKeyboard(view);
+        semdSmsCode();
+    }
 
-        createCallback();
-        uniqueIdentifier = getInstallationIdentifier();
+    public void verifyCodeOnClick(View view) {
+        hideKeyboard(view);
+        verifySmsCode();
+    }
 
-        if (FirebaseAuth.getInstance().getCurrentUser() == null)
-            getVerificationDataFromFirestoreAndVerify(null);
-        else {
-            initButtons();
-            showSingInButtons();
+    public void signOuOnClick(View view) {
+        hideKeyboard(view);
+        signOut();
+    }
+
+    public void changePhoneNumber(View view) {
+        hideKeyboard(view);
+        signOut();
+    }
+
+    private void updateChangePhoneNumberText(String phoneNumber) {
+        TextView tv = findViewById(R.id.verification_tv);
+        if (tv != null) {
+            String text = "Verification code sent to " + phoneNumber;
+            tv.setText(text);
         }
-
     }
 
-    private void addOnClickListeners() {
-        sendCodeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                hideKeyboard(view);
-                verifyPhoneNumberInit();
-            }
-        });
-        verifyCodeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                hideKeyboard(view);
-                verifyPhoneNumberCode();
-            }
-        });
-        signOutButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                hideKeyboard(view);
-                signOut();
-            }
-        });
+    private void semdSmsCode() {
+        if (!validatePhoneNumberAndName(getPhoneNumberWithCountryCode())) {
+            return;
+        }
+        verifyPhoneNumber(getPhoneNumberWithCountryCode());
     }
 
-    private void createCallback() {
-        callbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-            @Override
-            public void onVerificationCompleted(PhoneAuthCredential credential) {
-                Log.d(TAG, "verification completed" + credential);
-                showProgressBar(false);
-                signInWithPhoneAuthCredential(credential);
-            }
-
-            @Override
-            public void onVerificationFailed(FirebaseException e) {
-                Log.w(TAG, "verification failed", e);
-                if (e instanceof FirebaseAuthInvalidCredentialsException) {
-                    phoneNum.setError("Invalid phone number.");
-                } else if (e instanceof FirebaseTooManyRequestsException) {
-                    Toast.makeText(FirebasePhoneNumAuthActivity.this,
-                            "Trying too many timeS",
-                            Toast.LENGTH_SHORT).show();
-                }
-                showProgressBar(false);
-            }
-
-            @Override
-            public void onCodeSent(String verificationId,
-                                   PhoneAuthProvider.ForceResendingToken token) {
-                disableSendCodeButton(System.currentTimeMillis());
-                Log.d(TAG, "code sent " + verificationId);
-                addVerificationDataToFirestore(phoneNumber, verificationId);
-                showProgressBar(false);
-            }
-        };
-    }
-
-    private boolean validatePhoneNumber(String phoneNumber) {
+    private boolean validatePhoneNumberAndName(String phoneNumber) {
         if (TextUtils.isEmpty(phoneNumber)) {
-            phoneNum.setError("Invalid phone number.");
+            phoneEt.setError("Can't be empty");
+            return false;
+        } else if (TextUtils.isEmpty(getPreferredName())) {
+            ((EditText) findViewById(R.id.name_et)).setError("Can't be empty");
             return false;
         }
         return true;
-    }
-
-    private void verifyPhoneNumberInit() {
-        phoneNumber = phoneNum.getText().toString();
-        if (!validatePhoneNumber(phoneNumber)) {
-            return;
-        }
-        verifyPhoneNumber(phoneNumber);
-
     }
 
     private void verifyPhoneNumber(String phno) {
@@ -167,30 +109,75 @@ public class FirebasePhoneNumAuthActivity extends AppCompatActivity {
         PhoneAuthProvider.getInstance().verifyPhoneNumber(phno, 70,
                 TimeUnit.SECONDS, this, callbacks);
     }
+    private PhoneAuthProvider.OnVerificationStateChangedCallbacks callbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+        @Override
+        public void onVerificationCompleted(PhoneAuthCredential credential) {
+            Log.d(TAG, "verification completed" + credential);
+            showProgressBar(false);
+            signInWithPhoneAuthCredential(credential);
+        }
 
-    private void verifyPhoneNumberCode() {
-        final String phone_code = verifyCodeET.getText().toString();
-        getVerificationDataFromFirestoreAndVerify(phone_code);
+        @Override
+        public void onVerificationFailed(FirebaseException e) {
+            Log.w(TAG, "verification failed", e);
+            if (e instanceof FirebaseAuthInvalidCredentialsException) {
+                phoneEt.setError("Invalid phone number.");
+                Toast.makeText(FirebasePhoneNumAuthActivity.this,
+                        "The format of the phone number provided is incorrect. " +
+                                "The phone number must be in the format [+][country code][subscriber number].",
+                        Toast.LENGTH_LONG).show();
+
+            } else if (e instanceof FirebaseTooManyRequestsException) {
+                Toast.makeText(FirebasePhoneNumAuthActivity.this,
+                        "Too many attempts. Please try after some time",
+                        Toast.LENGTH_SHORT).show();
+            }
+            showProgressBar(false);
+        }
+
+        @Override
+        public void onCodeSent(String verificationId, PhoneAuthProvider.ForceResendingToken token) {
+            Log.d(TAG, "code sent " + verificationId);
+            FirebasePhoneNumAuthActivity.this.verificationId = verificationId;
+            showVerificationGroup();
+            updateChangePhoneNumberText(getPhoneNumberWithCountryCode());
+            showProgressBar(false);
+        }
+    };
+
+
+    private void verifySmsCode() {
+        if (verificationId != null) {
+            final String verification_code = verifyCodeEt.getText().toString().trim();
+            PhoneAuthCredential credential = PhoneAuthProvider.
+                    getCredential(verificationId, verification_code);
+            signInWithPhoneAuthCredential(credential);
+        } else {
+            Log.e(TAG, "verificationId is null");
+            Toast.makeText(FirebasePhoneNumAuthActivity.this,
+                    "Something went wrong please try again.",
+                    Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     private void signInWithPhoneAuthCredential(PhoneAuthCredential credential) {
         showProgressBar(true);
-        verifyCodeET.setText(credential.getSmsCode());
+        verifyCodeEt.setText(credential.getSmsCode());
         firebaseAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         showProgressBar(false);
                         if (task.isSuccessful()) {
+                            addUserToFireStore(task.getResult().getUser());
                             Log.d(TAG, "code verified signIn successful");
-                            firebaseUser = task.getResult().getUser();
-                            showSingInButtons();
-
+                            showSignoutGroup();
                         } else {
                             Log.w(TAG, "code verification failed", task.getException());
                             if (task.getException() instanceof
                                     FirebaseAuthInvalidCredentialsException) {
-                                verifyCodeET.setError("Invalid code.");
+                                verifyCodeEt.setError("Invalid code.");
                             }
                         }
                     }
@@ -198,25 +185,23 @@ public class FirebasePhoneNumAuthActivity extends AppCompatActivity {
                 });
     }
 
-    private void createCredentialSignIn(String verificationId, String verifyCode) {
-        PhoneAuthCredential credential = PhoneAuthProvider.
-                getCredential(verificationId, verifyCode);
-        signInWithPhoneAuthCredential(credential);
-    }
-
     private void signOut() {
         firebaseAuth.signOut();
-        showSendCodeButton();
+        showLoginGroup();
     }
 
-    private void addVerificationDataToFirestore(String phone, String verificationId) {
-        Map<String, Object> verifyMap = new HashMap<>();
-        verifyMap.put("phone", phone);
-        verifyMap.put("verificationId", verificationId);
-        verifyMap.put("timestamp", System.currentTimeMillis());
 
-        firestoreDB.collection("phoneAuth").document(uniqueIdentifier)
-                .set(verifyMap)
+    private void addUserToFireStore(FirebaseUser user) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("userId", user.getUid());
+        map.put("name", getPreferredName());
+        map.put("phone", getPhoneNumber());
+        map.put("countryCode", countryCodePicker.getDefaultCountryCodeAsInt());
+        map.put("lastUpdated", System.currentTimeMillis());
+        map.put("isVerified", true);
+
+        firestoreDB.collection("users").document(user.getUid())
+                .set(map)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -231,82 +216,37 @@ public class FirebasePhoneNumAuthActivity extends AppCompatActivity {
                 });
     }
 
-    private void getVerificationDataFromFirestoreAndVerify(final String code) {
-        initButtons();
-        firestoreDB.collection("phoneAuth").document(uniqueIdentifier)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot ds = task.getResult();
-                            if (ds.exists()) {
-                                disableSendCodeButton(ds.getLong("timestamp"));
-                                if (code != null) {
-                                    createCredentialSignIn(ds.getString("verificationId"),
-                                            code);
-                                } else if (ds.getString("phone") != null) {
-                                    verifyPhoneNumber(ds.getString("phone"));
-                                } else {
-                                    Log.d(TAG, "Code send but phone field is null in cloud");
-                                    showSendCodeButton();
-                                }
-                            } else {
-                                showSendCodeButton();
-                                Log.d(TAG, "Code hasn't been sent yet");
-                            }
-                        } else {
-                            Log.d(TAG, "Error getting document: ", task.getException());
-                        }
-                    }
-                });
-    }
-
-    public synchronized String getInstallationIdentifier() {
-        if (uniqueIdentifier == null) {
-            SharedPreferences sharedPrefs = this.getSharedPreferences(
-                    UNIQUE_ID, Context.MODE_PRIVATE);
-            uniqueIdentifier = sharedPrefs.getString(UNIQUE_ID, null);
-            if (uniqueIdentifier == null) {
-                uniqueIdentifier = UUID.randomUUID().toString();
-                SharedPreferences.Editor editor = sharedPrefs.edit();
-                editor.putString(UNIQUE_ID, uniqueIdentifier);
-                editor.commit();
-            }
-        }
-        return uniqueIdentifier;
-    }
-
-    private void disableSendCodeButton(long codeSentTimestamp) {
-        long timeElapsed = System.currentTimeMillis() - codeSentTimestamp;
-        if (timeElapsed > ONE_HOUR_MILLI) {
-            showSendCodeButton();
-        } else {
-            findViewById(R.id.verification_code_group).setVisibility(View.VISIBLE);
-            findViewById(R.id.send_code_group).setVisibility(View.GONE);
-            findViewById(R.id.logout_group).setVisibility(View.GONE);
-        }
-    }
-
-    private void showSendCodeButton() {
-        findViewById(R.id.send_code_group).setVisibility(View.VISIBLE);
+    private void showLoginGroup() {
         findViewById(R.id.verification_code_group).setVisibility(View.GONE);
+        findViewById(R.id.send_code_group).setVisibility(View.VISIBLE);
         findViewById(R.id.logout_group).setVisibility(View.GONE);
     }
 
-    private void showSingInButtons() {
+    private void showVerificationGroup() {
+        findViewById(R.id.verification_code_group).setVisibility(View.VISIBLE);
+        findViewById(R.id.send_code_group).setVisibility(View.GONE);
+        findViewById(R.id.logout_group).setVisibility(View.GONE);
+    }
+
+    private void showSignoutGroup() {
         findViewById(R.id.send_code_group).setVisibility(View.GONE);
         findViewById(R.id.verification_code_group).setVisibility(View.GONE);
         findViewById(R.id.logout_group).setVisibility(View.VISIBLE);
     }
 
-    private void initButtons() {
-        findViewById(R.id.send_code_group).setVisibility(View.GONE);
-        findViewById(R.id.verification_code_group).setVisibility(View.GONE);
-        findViewById(R.id.logout_group).setVisibility(View.GONE);
-    }
-
     private void showProgressBar(boolean visibility) {
         progressBar.setVisibility(visibility ? View.VISIBLE : View.GONE);
+    }
+
+    private String getPhoneNumber() {
+        return phoneEt.getText().toString().trim();
+    }
+
+    private String getPhoneNumberWithCountryCode() {
+        return countryCodePicker.getSelectedCountryCodeWithPlus() + phoneEt.getText().toString().trim();
+    }
+
+    private String getPreferredName() {
+        return ((EditText) findViewById(R.id.name_et)).getText().toString().trim();
     }
 }
