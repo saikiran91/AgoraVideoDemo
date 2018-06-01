@@ -1,5 +1,6 @@
 package io.agora.agoravideodemo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -30,6 +31,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.agora.agoravideodemo.model.UserInfo;
+import io.agora.agoravideodemo.ui.MainActivity;
+
 import static io.agora.agoravideodemo.utils.CommonUtilsKt.hideKeyboard;
 
 public class FirebasePhoneNumAuthActivity extends AppCompatActivity {
@@ -54,7 +58,7 @@ public class FirebasePhoneNumAuthActivity extends AppCompatActivity {
         verifyCodeEt = findViewById(R.id.auth_et);
 
         if (firebaseAuth.getCurrentUser() != null)
-            showSignoutGroup();
+            launchNextActivity();
     }
 
 
@@ -109,6 +113,7 @@ public class FirebasePhoneNumAuthActivity extends AppCompatActivity {
         PhoneAuthProvider.getInstance().verifyPhoneNumber(phno, 70,
                 TimeUnit.SECONDS, this, callbacks);
     }
+
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks callbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
         @Override
         public void onVerificationCompleted(PhoneAuthCredential credential) {
@@ -170,9 +175,8 @@ public class FirebasePhoneNumAuthActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         showProgressBar(false);
                         if (task.isSuccessful()) {
-                            addUserToFireStore(task.getResult().getUser());
                             Log.d(TAG, "code verified signIn successful");
-                            showSignoutGroup();
+                            addUserToFireStore(task.getResult().getUser());
                         } else {
                             Log.w(TAG, "code verification failed", task.getException());
                             if (task.getException() instanceof
@@ -187,18 +191,20 @@ public class FirebasePhoneNumAuthActivity extends AppCompatActivity {
 
     private void signOut() {
         firebaseAuth.signOut();
+        UserInfo.INSTANCE.clear();
         showLoginGroup();
     }
 
 
-    private void addUserToFireStore(FirebaseUser user) {
+    private void addUserToFireStore(final FirebaseUser user) {
+        showProgressBar(true);
         Map<String, Object> map = new HashMap<>();
         map.put("userId", user.getUid());
         map.put("name", getPreferredName());
         map.put("phone", getPhoneNumber());
         map.put("countryCode", countryCodePicker.getDefaultCountryCodeAsInt());
         map.put("lastUpdated", System.currentTimeMillis());
-        map.put("isVerified", true);
+        map.put("verified", true);
 
         firestoreDB.collection("users").document(user.getUid())
                 .set(map)
@@ -206,14 +212,32 @@ public class FirebasePhoneNumAuthActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(Void aVoid) {
                         Log.d(TAG, "DocumentSnapshot successfully written!");
+                        showProgressBar(false);
+                        saveUserDetailsToPrefs(user.getUid(), getPreferredName(), getPhoneNumber(), countryCodePicker.getDefaultCountryCodeAsInt());
+                        launchNextActivity();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error adding phone auth info", e);
+                        Log.e(TAG, "Error adding phone auth info", e);
+                        showProgressBar(false);
                     }
                 });
+    }
+
+    private void launchNextActivity() {
+        // showSignoutGroup();
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
+    }
+
+    private void saveUserDetailsToPrefs(String uid, String preferredName, String phoneNumber, int defaultCountryCodeAsInt) {
+        UserInfo.INSTANCE.setUserId(uid);
+        UserInfo.INSTANCE.setName(preferredName);
+        UserInfo.INSTANCE.setPhone(phoneNumber);
+        UserInfo.INSTANCE.setCountryCode(defaultCountryCodeAsInt);
+
     }
 
     private void showLoginGroup() {

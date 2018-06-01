@@ -41,7 +41,7 @@
             android:layout_height="wrap_content"
             android:hint="Preferred name"
             android:imeOptions="actionNext"
-            android:inputType="textPersonName" />
+            android:inputType="textNoSuggestions|textPersonName" />
     </android.support.design.widget.TextInputLayout>
 
 
@@ -78,7 +78,7 @@
             android:layout_height="wrap_content"
             android:hint="Enter phone number"
             android:imeOptions="actionDone"
-            android:inputType="numberSigned" />
+            android:inputType="textNoSuggestions|phone" />
     </android.support.design.widget.TextInputLayout>
 
     <Button

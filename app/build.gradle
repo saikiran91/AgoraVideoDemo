@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 27
@@ -25,6 +26,8 @@ android {
             jniLibs.srcDirs = ['libs']
         }
     }
+    dataBinding.enabled true
+
 }
 
 dependencies {
@@ -37,5 +40,11 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth:16.0.1'
     implementation 'com.google.firebase:firebase-firestore:17.0.1'
     implementation 'com.github.joielechong:countrycodepicker:2.1.5'
+    implementation 'com.github.nitrico.lastadapter:lastadapter:2.3.0'
+    implementation 'com.chibatching.kotpref:kotpref:2.5.0'
+    implementation 'com.chibatching.kotpref:initializer:2.5.0'
+    implementation 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
+    kapt 'com.android.databinding:compiler:3.1.2'
+
 }
 apply plugin: 'com.google.gms.google-services'

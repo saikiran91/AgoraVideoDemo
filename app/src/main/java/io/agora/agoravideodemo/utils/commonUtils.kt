@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import com.google.i18n.phonenumbers.PhoneNumberUtil
+import java.util.*
 
 
 /**
@@ -27,4 +28,26 @@ fun View.hideKeyboard() {
 fun View.showKeyboard() {
     val imm = this.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
     imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+}
+
+fun View.show(visible: Boolean = true) {
+    visibility = if (visible) View.VISIBLE else View.GONE
+}
+
+fun View.hide() = show(visible = false)
+
+fun View.invisible() {
+    visibility = View.INVISIBLE
+}
+
+fun getWelcomeMessage(): String {
+    val c = Calendar.getInstance()
+    val timeOfDay = c.get(Calendar.HOUR_OF_DAY)
+    return when (timeOfDay) {
+        in 0..11 -> "Good Morning"
+        in 12..15 -> "Good Afternoon"
+        in 16..20 -> "Good Evening"
+        in 21..23 -> "Good Evening. Time to sleep :)"
+        else -> "Hello"
+    }
 }
