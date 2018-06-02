@@ -3,6 +3,7 @@ package io.agora.agoravideodemo.utils
 import android.content.Context
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import com.google.gson.Gson
 import com.google.i18n.phonenumbers.PhoneNumberUtil
 import java.util.*
 
@@ -51,3 +52,13 @@ fun getWelcomeMessage(): String {
         else -> "Hello"
     }
 }
+
+fun String.decodeFromBase64(): String {
+    return android.util.Base64.decode(this, android.util.Base64.DEFAULT).toString(charset("UTF-8"))
+}
+
+fun String.encodeToBase64(): String {
+    return android.util.Base64.encodeToString(this.toByteArray(charset("UTF-8")), android.util.Base64.DEFAULT)
+}
+
+fun Gson.toBase64Encode(obj: Any) = toJson(obj).encodeToBase64()

@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
@@ -15,7 +14,9 @@ import android.support.v7.app.AppCompatActivity;
 
 import java.util.HashSet;
 
+import io.agora.agoravideodemo.AgoraSignalingService;
 import io.agora.agoravideodemo.RtcService;
+import io.agora.agoravideodemo.model.SignalMessageAction;
 import io.agora.rtc.RtcEngine;
 
 /**
@@ -24,6 +25,25 @@ import io.agora.rtc.RtcEngine;
 abstract public class BaseRtcActivity extends AppCompatActivity {
     private RtcService mService;
     public boolean mBound = false;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        startService(new Intent(this, AgoraSignalingService.class));
+    }
+
+    final public void makeCall(String userId) {
+        Intent callIntent = new Intent(this, AgoraSignalingService.class);
+        callIntent.setAction(SignalMessageAction.MAKE_CALL.name());
+        callIntent.putExtra(AgoraSignalingService.ON_GOING_USER_ID_KEY,userId);
+        startService(callIntent);
+    }
+
+    final public void endCalls() {
+        Intent callIntent = new Intent(this, AgoraSignalingService.class);
+        callIntent.setAction(SignalMessageAction.END_CALL.name());
+        startService(callIntent);
+    }
 
     @Override
     protected void onStart() {

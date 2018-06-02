@@ -13,6 +13,7 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -45,6 +46,9 @@ dependencies {
     implementation 'com.chibatching.kotpref:initializer:2.5.0'
     implementation 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
     kapt 'com.android.databinding:compiler:3.1.2'
+    implementation 'com.jakewharton.timber:timber:4.7.0'
+    implementation 'com.google.code.gson:gson:2.8.4'
+    implementation 'com.android.support:multidex:1.0.3'
 
 }
 apply plugin: 'com.google.gms.google-services'

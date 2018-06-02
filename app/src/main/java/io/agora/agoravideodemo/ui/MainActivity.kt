@@ -74,6 +74,7 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
 
     private fun callUser(item: FireUser) {
 //        join_call.setOnClickListener { launchVideoChatActivity() }
+        makeCall(item.userId)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -129,7 +130,8 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
             R.id.action_logout -> {
-                signOut()
+//                signOut()
+                endCalls()
                 true
             }
             else -> super.onOptionsItemSelected(item)
