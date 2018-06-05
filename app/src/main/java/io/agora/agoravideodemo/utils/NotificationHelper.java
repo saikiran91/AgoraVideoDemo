@@ -24,6 +24,7 @@ import io.agora.agoravideodemo.ui.VideoChatViewActivity;
 public class NotificationHelper extends ContextWrapper {
     private NotificationManager manager;
     public static final String CALL_STATUS_CHANNEL = "CALL_STATUS_CHANNEL";
+    public static final String SIGNALING_SERVICE_CHANNEL = "CALL_STATUS_CHANNEL";
 
     /**
      * Registers notification channels, which can be used later by individual notifications.
@@ -77,6 +78,30 @@ public class NotificationHelper extends ContextWrapper {
                 .setOngoing(true)
                 .setContentIntent(resultPendingIntent)
                 .addAction(0, "End Call", endCallPendingIntent)
+                .setAutoCancel(true);
+    }
+    /**
+     * Get a notification of type 1
+     * <p>
+     * Provide the builder rather than the notification it's self as useful for making notification
+     * changes.
+     *
+     * @param title the title of the notification
+     * @param body  the body text for the notification
+     * @return the builder as it keeps a reference to the notification (since API 24)
+     */
+    public NotificationCompat.Builder getSignalingNotification(String title, String body) {
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+        return new NotificationCompat.Builder(getApplicationContext(), SIGNALING_SERVICE_CHANNEL)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setSmallIcon(getSmallIcon())
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setWhen(0)
+                .setOngoing(true)
+                .setContentIntent(resultPendingIntent)
                 .setAutoCancel(true);
     }
 

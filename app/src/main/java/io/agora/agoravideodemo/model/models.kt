@@ -7,7 +7,9 @@ import com.chibatching.kotpref.KotprefModel
  **/
 data class FireUser(val userId: String = "", val name: String = "",
                     val phone: String = "0", val countryCode: Int = 0,
-                    val lastUpdated: Long = 0L, val verified: Boolean = false)
+                    val lastUpdated: Long = 0L, val verified: Boolean = false) {
+    fun getPhoneWithCountryCode() = "+$countryCode-$phone"
+}
 
 object UserInfo : KotprefModel() {
     var userId by stringPref()
@@ -17,7 +19,7 @@ object UserInfo : KotprefModel() {
 }
 
 //Signal Stuffs
-enum class SignalMessageAction { MAKE_CALL, END_CALL }
+enum class SignalMessageAction { MAKE_CALL, END_CALL, ACCEPT_CALL, REJECT_CALL, LINE_BUSY, LINE_NOT_REACHABLE }
 
 data class SignalSenderInfo(
         val userId: String = UserInfo.userId,
@@ -26,4 +28,5 @@ data class SignalSenderInfo(
         val countryCode: Int = UserInfo.countryCode
 )
 
-data class SignalMessage(val action: SignalMessageAction, val senderInfo: SignalSenderInfo, val message: String)
+data class SignalMessage(val action: SignalMessageAction, val senderInfo: SignalSenderInfo,
+                         val message: String, val channelID: String? = null)

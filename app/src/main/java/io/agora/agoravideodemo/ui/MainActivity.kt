@@ -34,6 +34,7 @@ import io.agora.agoravideodemo.utils.show
 import io.agora.rtc.RtcEngine
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item_contact.view.*
+import timber.log.Timber
 import java.lang.ref.WeakReference
 
 
@@ -74,7 +75,7 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
 
     private fun callUser(item: FireUser) {
 //        join_call.setOnClickListener { launchVideoChatActivity() }
-        makeCall(item.userId)
+        makeCall(item.userId,item.name,item.getPhoneWithCountryCode())
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -95,7 +96,7 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
             if (!documents.isEmpty) {
                 compareAndMergeUsers(documents.toObjects(FireUser::class.java))
             } else {
-                Log.d("MainActivity", "fetchContactsFromServer documents isEmpty")
+                Timber.d("fetchContactsFromServer documents isEmpty")
             }
         })
     }
@@ -109,7 +110,7 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
             listOfRegisteredUsers.clear()
             listOfRegisteredUsers.addAll(mergeResult)
         } else {
-            Log.d("MainActivity", "listOfLocalUsers is NULL")
+            Timber.d("listOfLocalUsers is NULL")
         }
     }
 
@@ -130,8 +131,7 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
             R.id.action_logout -> {
-//                signOut()
-                endCalls()
+                signOut()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -183,12 +183,12 @@ class ContactsPullTask(private val weakActivity: WeakReference<Activity>) : Asyn
         val activity = weakActivity.get()
         if (activity == null || activity.isFinishing || activity.isDestroyed) {
             // activity is no longer valid, don't do anything!
-            Log.d("ContactsPullTask", "onPostExecute error  activity is not available")
+            Timber.d("onPostExecute error  activity is not available")
             return
         }
         // The activity is still valid, do main-thread stuff here
         if (result.isNotEmpty()) (weakActivity.get() as ContactsPullTaskInteractionListener).onContactPulled(result)
-        else Log.d("ContactsPullTask", "onPostExecute error result is empty")
+        else Timber.d("onPostExecute error result is empty")
     }
 
     interface ContactsPullTaskInteractionListener {

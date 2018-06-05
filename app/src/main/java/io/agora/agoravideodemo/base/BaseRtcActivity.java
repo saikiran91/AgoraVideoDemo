@@ -32,16 +32,12 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
         startService(new Intent(this, AgoraSignalingService.class));
     }
 
-    final public void makeCall(String userId) {
+    final public void makeCall(String userId, String name, String phoneWithCountryCode) {
         Intent callIntent = new Intent(this, AgoraSignalingService.class);
         callIntent.setAction(SignalMessageAction.MAKE_CALL.name());
         callIntent.putExtra(AgoraSignalingService.ON_GOING_USER_ID_KEY,userId);
-        startService(callIntent);
-    }
-
-    final public void endCalls() {
-        Intent callIntent = new Intent(this, AgoraSignalingService.class);
-        callIntent.setAction(SignalMessageAction.END_CALL.name());
+        callIntent.putExtra(AgoraSignalingService.RECEIVER_CALL_USER_NAME_KEY,name);
+        callIntent.putExtra(AgoraSignalingService.RECEIVER_CALL_PHONE_KEY,phoneWithCountryCode);
         startService(callIntent);
     }
 

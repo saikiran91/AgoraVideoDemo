@@ -5,6 +5,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import com.google.gson.Gson
 import com.google.i18n.phonenumbers.PhoneNumberUtil
+import org.greenrobot.eventbus.EventBus
 import java.util.*
 
 
@@ -48,9 +49,17 @@ fun getWelcomeMessage(): String {
         in 0..11 -> "Good Morning"
         in 12..15 -> "Good Afternoon"
         in 16..20 -> "Good Evening"
-        in 21..23 -> "Good Evening. Time to sleep :)"
+        in 21..23 -> "Good Evening. Time to sleep"
         else -> "Hello"
     }
+}
+
+fun EventBus.regOnce(subscriber: Any) {
+    if (!isRegistered(subscriber)) register(subscriber)
+}
+
+fun EventBus.unregOnce(subscriber: Any) {
+    if (isRegistered(subscriber)) unregister(subscriber)
 }
 
 fun String.decodeFromBase64(): String {
