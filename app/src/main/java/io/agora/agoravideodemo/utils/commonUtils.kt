@@ -1,10 +1,13 @@
 package io.agora.agoravideodemo.utils
 
 import android.content.Context
+import android.support.design.widget.Snackbar
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import com.google.gson.Gson
 import com.google.i18n.phonenumbers.PhoneNumberUtil
+import io.agora.agoravideodemo.model.ShowSnackEvent
+import io.agora.agoravideodemo.model.ShowToastEvent
 import org.greenrobot.eventbus.EventBus
 import java.util.*
 
@@ -71,3 +74,16 @@ fun String.encodeToBase64(): String {
 }
 
 fun Gson.toBase64Encode(obj: Any) = toJson(obj).encodeToBase64()
+
+ fun showToastEvent(message: Any?) {
+    EventBus.getDefault().post(ShowToastEvent(message = message.toString()))
+}
+fun showSnackEvent(message: Any?) {
+    EventBus.getDefault().post(ShowSnackEvent(message = message.toString()))
+}
+
+fun View.snack(message: String, length: Int = Snackbar.LENGTH_SHORT) {
+    val snack = Snackbar.make(this, message, length)
+    snack.show()
+}
+

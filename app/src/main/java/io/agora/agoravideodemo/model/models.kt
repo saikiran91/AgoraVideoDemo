@@ -19,7 +19,7 @@ object UserInfo : KotprefModel() {
 }
 
 //Signal Stuffs
-enum class SignalMessageAction { MAKE_CALL, END_CALL, ACCEPT_CALL, REJECT_CALL, LINE_BUSY, LINE_NOT_REACHABLE }
+enum class SignalMessageAction { MAKE_CALL, END_CALL, ACCEPT_CALL, REJECT_CALL, LINE_BUSY }
 
 data class SignalSenderInfo(
         val userId: String = UserInfo.userId,

@@ -11,3 +11,9 @@ data class OutgoingCallEvent(val channelID: String, val receiverUserId: String, 
 class EndCallEvent
 
 class RejectCallEvent
+
+class LineBusyEvent
+
+class ShowToastEvent(val message: String)
+
+class ShowSnackEvent(val message: String)

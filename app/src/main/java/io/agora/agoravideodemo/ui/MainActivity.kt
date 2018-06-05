@@ -9,7 +9,6 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.support.v7.widget.AppCompatImageView
 import android.telephony.TelephonyManager
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -25,22 +24,23 @@ import io.agora.agoravideodemo.base.BaseRtcActivity
 import io.agora.agoravideodemo.databinding.ItemContactBinding
 import io.agora.agoravideodemo.model.ContactModel
 import io.agora.agoravideodemo.model.FireUser
+import io.agora.agoravideodemo.model.ShowSnackEvent
 import io.agora.agoravideodemo.model.UserInfo
 import io.agora.agoravideodemo.ui.VideoChatViewActivity.CHAT_ROOM_KEY
-import io.agora.agoravideodemo.utils.ContactsHelper
-import io.agora.agoravideodemo.utils.getWelcomeMessage
-import io.agora.agoravideodemo.utils.hide
-import io.agora.agoravideodemo.utils.show
+import io.agora.agoravideodemo.utils.*
 import io.agora.rtc.RtcEngine
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item_contact.view.*
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
 import timber.log.Timber
 import java.lang.ref.WeakReference
 
 
 class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInteractionListener {
 
-    val contactsAdapter: LastAdapter by lazy { initLastAdapter() }
+    private val contactsAdapter: LastAdapter by lazy { initLastAdapter() }
+    private val mEventBus = EventBus.getDefault()
 
     private var listOfLocalUsers: List<ContactModel>? = null
     private var listOfRegisteredUsers: ObservableList<FireUser> = ObservableArrayList<FireUser>()
@@ -75,7 +75,7 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
 
     private fun callUser(item: FireUser) {
 //        join_call.setOnClickListener { launchVideoChatActivity() }
-        makeCall(item.userId,item.name,item.getPhoneWithCountryCode())
+        makeCall(item.userId, item.name, item.getPhoneWithCountryCode())
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -165,6 +165,21 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
                 .apply { putExtra(CHAT_ROOM_KEY, "demo_1") })
     }
 
+    @Subscribe
+    fun onShowSnackEvent(event: ShowSnackEvent) {
+        parent_container.snack(event.message)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        mEventBus.regOnce(this)
+    }
+
+    override fun onStop() {
+        mEventBus.unregOnce(this)
+        super.onStop()
+    }
+
 }
 
 class ContactsPullTask(private val weakActivity: WeakReference<Activity>) : AsyncTask<String, Void, MutableList<ContactModel>>() {
@@ -194,6 +209,8 @@ class ContactsPullTask(private val weakActivity: WeakReference<Activity>) : Asyn
     interface ContactsPullTaskInteractionListener {
         fun onContactPulled(list: MutableList<ContactModel>)
     }
+
+
 }
 
 

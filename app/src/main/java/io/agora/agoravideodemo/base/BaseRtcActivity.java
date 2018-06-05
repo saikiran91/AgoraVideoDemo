@@ -35,9 +35,9 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
     final public void makeCall(String userId, String name, String phoneWithCountryCode) {
         Intent callIntent = new Intent(this, AgoraSignalingService.class);
         callIntent.setAction(SignalMessageAction.MAKE_CALL.name());
-        callIntent.putExtra(AgoraSignalingService.ON_GOING_USER_ID_KEY,userId);
-        callIntent.putExtra(AgoraSignalingService.RECEIVER_CALL_USER_NAME_KEY,name);
-        callIntent.putExtra(AgoraSignalingService.RECEIVER_CALL_PHONE_KEY,phoneWithCountryCode);
+        callIntent.putExtra(AgoraSignalingService.ON_GOING_USER_ID_KEY, userId);
+        callIntent.putExtra(AgoraSignalingService.RECEIVER_CALL_USER_NAME_KEY, name);
+        callIntent.putExtra(AgoraSignalingService.RECEIVER_CALL_PHONE_KEY, phoneWithCountryCode);
         startService(callIntent);
     }
 
@@ -147,9 +147,12 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
 
     abstract public void onRtcServiceConnected(RtcEngine rtcEngine);
 
-    abstract public void onCallEnded();
+    public void onCallEnded() {
+        //Implement in client if required
+    }
 
     public void onActiveSpeaker(int uid) {
+        //Implement in client if required
     }
 
     public void onAudioVolumeIndication(int uid, int totalVolume) {

@@ -12,10 +12,7 @@ import io.agora.agoravideodemo.model.*
 import io.agora.agoravideodemo.ui.IncomingOutgoingActivity
 import io.agora.agoravideodemo.ui.MainActivity
 import io.agora.agoravideodemo.ui.VideoChatViewActivity
-import io.agora.agoravideodemo.utils.BaseICallBack
-import io.agora.agoravideodemo.utils.NotificationHelper
-import io.agora.agoravideodemo.utils.decodeFromBase64
-import io.agora.agoravideodemo.utils.toBase64Encode
+import io.agora.agoravideodemo.utils.*
 import org.greenrobot.eventbus.EventBus
 import timber.log.Timber
 import java.util.*
@@ -68,9 +65,18 @@ class AgoraSignalingService : Service() {
                 SignalMessageAction.ACCEPT_CALL -> {
                     callAccepted(intent.extras.getString("channelID"), intent.extras.getString("callerUserId"))
                 }
+                SignalMessageAction.LINE_BUSY -> {
+                    busyLine(intent.extras.getString("callerUserId"))
+                }
+
             }
         }
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    private fun busyLine(callerUserId: String) {
+        val message = SignalMessage(action = SignalMessageAction.LINE_BUSY, senderInfo = SignalSenderInfo(), message = "")
+        mSignal.messageInstantSend(callerUserId, 0, mGson.toBase64Encode(message), SignalMessageAction.LINE_BUSY.name)
     }
 
     private fun makeCall(receiverUserId: String, receiverName: String, receiverPhone: String) {
@@ -159,8 +165,9 @@ class AgoraSignalingService : Service() {
                     stackBuilder.addNextIntentWithParentStack(resultIntent)
                     stackBuilder.startActivities()
                 }
-                SignalMessageAction.LINE_NOT_REACHABLE -> TODO()
-                SignalMessageAction.LINE_BUSY -> TODO()
+                SignalMessageAction.LINE_BUSY -> {
+                    mEventBus.post(LineBusyEvent())
+                }
             }
         }
 
@@ -168,7 +175,11 @@ class AgoraSignalingService : Service() {
             Timber.d("onMessageSendSuccess messageID = %s", messageID)
             messageID?.let {
                 when (SignalMessageAction.valueOf(it)) {
-                    SignalMessageAction.MAKE_CALL -> startActivity(Intent(this@AgoraSignalingService, IncomingOutgoingActivity::class.java))
+                    SignalMessageAction.MAKE_CALL -> {
+                        val intent = Intent(this@AgoraSignalingService, IncomingOutgoingActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        startActivity(intent)
+                    }
                     else -> {
                     }
                 }
@@ -179,8 +190,12 @@ class AgoraSignalingService : Service() {
             Timber.d("onMessageSendError messageID = %s and ecode = %s", messageID, ecode)
             messageID?.let {
                 when (SignalMessageAction.valueOf(it)) {
-                    SignalMessageAction.MAKE_CALL -> { }
-                    else -> { }
+                    SignalMessageAction.MAKE_CALL -> {
+                        showSnackEvent("Call not reachable")
+                    }
+                    else -> {
+                        showSnackEvent("Call failed with error $ecode")
+                    }
                 }
             }
         }

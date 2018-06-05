@@ -4,13 +4,15 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.support.v4.app.TaskStackBuilder
-import android.support.v7.app.AppCompatActivity
 import io.agora.agoravideodemo.AgoraSignalingService
 import io.agora.agoravideodemo.R
+import io.agora.agoravideodemo.base.BaseRtcActivity
 import io.agora.agoravideodemo.model.*
 import io.agora.agoravideodemo.utils.hide
 import io.agora.agoravideodemo.utils.regOnce
+import io.agora.agoravideodemo.utils.showToastEvent
 import io.agora.agoravideodemo.utils.unregOnce
+import io.agora.rtc.RtcEngine
 import kotlinx.android.synthetic.main.content_incomin_outgoing.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -20,7 +22,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
-class IncomingOutgoingActivity : AppCompatActivity() {
+class IncomingOutgoingActivity : BaseRtcActivity() {
     private val mEventBus = EventBus.getDefault()
     private var mScheduleFuture: ScheduledFuture<*>? = null
     private val mFinishActivityTask = Runnable {
@@ -31,10 +33,25 @@ class IncomingOutgoingActivity : AppCompatActivity() {
         }
     }
 
+    override fun onRtcServiceConnected(rtcEngine: RtcEngine?) {
+        Timber.d("onRtcServiceConnected")
+    }
+
+    private fun sendActionToSignalingService(message: SignalMessage) {
+        val intent = getSignalingIntent()
+        intent.action = SignalMessageAction.LINE_BUSY.name
+        intent.putExtra("callerUserId", message.senderInfo.userId)
+        startService(intent)
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_incomin_outgoing)
         scheduleAutoCutOff()
+        end_btn.setOnClickListener {
+            this@IncomingOutgoingActivity.finish()
+        }
     }
 
     private fun scheduleAutoCutOff() {
@@ -70,6 +87,7 @@ class IncomingOutgoingActivity : AppCompatActivity() {
     }
 
     private fun showIncomingActions(message: SignalMessage) {
+        Timber.d("showIncomingActions message %s", message.toString())
         status_tv.text = message.senderInfo.run { "$name is calling\n+$countryCode-$phone" }
 
         val resultIntent = Intent(this, VideoChatViewActivity::class.java)
@@ -87,6 +105,10 @@ class IncomingOutgoingActivity : AppCompatActivity() {
         end_btn.setOnClickListener {
             sendCallRejectedAction(message)
             this@IncomingOutgoingActivity.finish()
+        }
+
+        if (isCallOnGoing) {
+            sendActionToSignalingService(message)
         }
     }
 
@@ -121,11 +143,11 @@ class IncomingOutgoingActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun sendActionToSignalingService(action: SignalMessageAction, channelID: String) {
-        val intent = Intent(this, AgoraSignalingService::class.java)
-        intent.action = action.name
-        intent.putExtra("channelID", channelID)
-        startService(intent)
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onLineBusyEvent(event: LineBusyEvent) {
+        showToastEvent("Line is busy, " +
+                "Please try after some time")
+        finish()
     }
 
     private fun getSignalingIntent() = Intent(this, AgoraSignalingService::class.java)

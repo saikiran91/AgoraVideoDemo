@@ -88,7 +88,7 @@ public class ContactsHelper {
             String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
             String get_Mo = CommonUtilsKt.deleteCountry(phoneNumber, countryCode);
             info.name = name;
-            info.mobileNumber = get_Mo;
+            info.mobileNumber = get_Mo.replaceAll("[^0-9]", "");
             map.put(contact_id, info);
         }
         phones.close();
