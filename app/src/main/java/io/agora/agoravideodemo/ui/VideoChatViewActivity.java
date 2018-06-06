@@ -218,6 +218,10 @@ public class VideoChatViewActivity extends BaseRtcActivity implements VideoViewA
         startActivity(new Intent(this, NotesActivity.class));
     }
 
+    public void onAddCallClicked(View view) {
+
+    }
+
     // Tutorial Step 1
     private void initializeAgoraEngine() {
         mRtcEngine = getRtcEngine();
