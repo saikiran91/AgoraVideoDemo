@@ -8,16 +8,11 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import org.greenrobot.eventbus.EventBus;
-
 import java.util.HashSet;
 
 import io.agora.agoravideodemo.utils.NotificationHelper;
 import io.agora.rtc.IRtcEngineEventHandler;
 import io.agora.rtc.RtcEngine;
-
-import static io.agora.agoravideodemo.utils.CommonUtilsKt.regOnce;
-import static io.agora.agoravideodemo.utils.CommonUtilsKt.unregOnce;
 
 public class RtcService extends Service {
     private static final String TAG = "RtcService";
@@ -25,6 +20,7 @@ public class RtcService extends Service {
     public static final String ACTION_END_CALL = "end_call";
     private static final int NOTIFICATION_ID = 340;
     private HashSet<Integer> mCallUser = new HashSet<>();
+    private String currentRoomID;
 
 
     public enum IntentAction {
@@ -62,7 +58,8 @@ public class RtcService extends Service {
         sendLocalBroadcast(intent);
     }
 
-    public void joinChannelRequested() {
+    public void joinChannelRequested(String roomId) {
+        currentRoomID = roomId;
         startService(new Intent(this, RtcService.class));
         Notification notification = mNotificationHelper.getNotification1("Agora call on going", "Tap to return").build();
         mNotificationHelper.notify(NOTIFICATION_ID, notification);
@@ -129,6 +126,7 @@ public class RtcService extends Service {
         }
     };
 
+
     private void sendLocalBroadcast(Intent intent) {
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
@@ -142,6 +140,10 @@ public class RtcService extends Service {
         return mRtcEngine;
     }
 
+    public String getCurrentRoomID() {
+        return currentRoomID;
+    }
+
     @Override
     public void onDestroy() {
         releaseResource();
@@ -152,6 +154,7 @@ public class RtcService extends Service {
         mCallUser.clear();
         RtcEngine.destroy();
         mRtcEngine = null;
+        currentRoomID = null;
         stopForeground(true);
     }
 

@@ -14,6 +14,8 @@ import io.agora.agoravideodemo.ui.MainActivity
 import io.agora.agoravideodemo.ui.VideoChatViewActivity
 import io.agora.agoravideodemo.utils.*
 import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import timber.log.Timber
 import java.util.*
 
@@ -33,6 +35,7 @@ class AgoraSignalingService : Service() {
         mSignal.callbackSet(mCustomICallBack)
         loginToAgoraSignaling()
         startSignalingForeground()
+        mEventBus.regOnce(this)
     }
 
     private fun loginToAgoraSignaling() {
@@ -46,6 +49,7 @@ class AgoraSignalingService : Service() {
     }
 
     override fun onDestroy() {
+        mEventBus.unregOnce(this)
         mSignal.logout()
         stopForeground(true)
         super.onDestroy()
@@ -58,7 +62,8 @@ class AgoraSignalingService : Service() {
                     SignalMessageAction.MAKE_CALL -> {
                         makeCall(intent.extras.getString(ON_GOING_USER_ID_KEY),
                                 intent.extras.getString(RECEIVER_CALL_USER_NAME_KEY),
-                                intent.extras.getString(RECEIVER_CALL_PHONE_KEY))
+                                intent.extras.getString(RECEIVER_CALL_PHONE_KEY),
+                                intent.extras.getString(ADD_CALL_CHANNEL_ID))
                     }
                     SignalMessageAction.END_CALL -> {
                         endCall(intent.extras.getString("receiverUserId"))
@@ -86,15 +91,15 @@ class AgoraSignalingService : Service() {
         mSignal.messageInstantSend(callerUserId, 0, mGson.toBase64Encode(message), SignalMessageAction.LINE_BUSY.name)
     }
 
-    private fun makeCall(receiverUserId: String, receiverName: String, receiverPhone: String) {
-        val newChannelId = UUID.randomUUID().toString()
+    private fun makeCall(receiverUserId: String, receiverName: String, receiverPhone: String, addCallChannelID: String?) {
+        val channelID = addCallChannelID ?: UUID.randomUUID().toString()
         val message = SignalMessage(
                 action = SignalMessageAction.MAKE_CALL,
                 senderInfo = SignalSenderInfo(),
                 message = "",
-                channelID = newChannelId)
+                channelID = channelID)
         mSignal.messageInstantSend(receiverUserId, 0, mGson.toBase64Encode(message), SignalMessageAction.MAKE_CALL.name)
-        mEventBus.postSticky(OutgoingCallEvent(newChannelId, receiverUserId, receiverName, receiverPhone))
+        mEventBus.postSticky(OutgoingCallEvent(channelID, receiverUserId, receiverName, receiverPhone))
     }
 
     private fun callAccepted(channelID: String, callerUserId: String) {
@@ -130,6 +135,7 @@ class AgoraSignalingService : Service() {
         const val ON_GOING_USER_ID_KEY = "ON_GOING_USER_ID_KEY"
         const val RECEIVER_CALL_USER_NAME_KEY = "CALL_USER_NAME_KEY"
         const val RECEIVER_CALL_PHONE_KEY = "CALL_PHONE_KEY"
+        const val ADD_CALL_CHANNEL_ID = "ADD_CALL_CHANNEL_ID"
         private const val SIGNALING_NOTIFICATION_ID = 550
 
     }
@@ -150,6 +156,7 @@ class AgoraSignalingService : Service() {
         }
 
         override fun onMessageInstantReceive(account: String?, uid: Int, msg: String?) {
+            //NOTE We cannot do any UI here.
             super.onMessageInstantReceive(account, uid, msg)
             Timber.d("onMessageInstantReceive account = %s , uid = %s , msg = %s", account, uid,
                     mGson.fromJson(msg?.decodeFromBase64(), SignalMessage::class.java))
@@ -157,7 +164,6 @@ class AgoraSignalingService : Service() {
             when (data.action) {
                 SignalMessageAction.MAKE_CALL -> {
                     mEventBus.postSticky(IncomingCallEvent(data))
-                    startActivity(Intent(this@AgoraSignalingService, IncomingOutgoingActivity::class.java))
                 }
                 SignalMessageAction.END_CALL -> {
                     mEventBus.post(EndCallEvent())
@@ -207,5 +213,12 @@ class AgoraSignalingService : Service() {
                 }
             }
         }
+    }
+
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    fun onIncomingCallEvent(event: IncomingCallEvent) {
+        val intent = Intent(this@AgoraSignalingService, IncomingOutgoingActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
     }
 }

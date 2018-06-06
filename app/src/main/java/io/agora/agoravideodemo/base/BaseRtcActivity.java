@@ -32,12 +32,13 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
         startService(new Intent(this, AgoraSignalingService.class));
     }
 
-    final public void makeCall(String userId, String name, String phoneWithCountryCode) {
+    final public void makeCall(String userId, String name, String phoneWithCountryCode, String channelID) {
         Intent callIntent = new Intent(this, AgoraSignalingService.class);
         callIntent.setAction(SignalMessageAction.MAKE_CALL.name());
         callIntent.putExtra(AgoraSignalingService.ON_GOING_USER_ID_KEY, userId);
         callIntent.putExtra(AgoraSignalingService.RECEIVER_CALL_USER_NAME_KEY, name);
         callIntent.putExtra(AgoraSignalingService.RECEIVER_CALL_PHONE_KEY, phoneWithCountryCode);
+        callIntent.putExtra(AgoraSignalingService.ADD_CALL_CHANNEL_ID, channelID);
         startService(callIntent);
     }
 
@@ -146,6 +147,10 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
         return mService.getRtcEngine();
     }
 
+    public String getLastKnownRoomID() {
+        return mBound ? mService.getCurrentRoomID() : null;
+    }
+
     abstract public void onRtcServiceConnected(RtcEngine rtcEngine);
 
     public void onCallEnded() {
@@ -180,8 +185,8 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
         //Implement in client if required
     }
 
-    final public void joinChannelRequested() {
-        if (mBound) mService.joinChannelRequested();
+    final public void joinChannelRequested(String roomId) {
+        if (mBound) mService.joinChannelRequested(roomId);
     }
 
     public HashSet<Integer> getOnCallList() {

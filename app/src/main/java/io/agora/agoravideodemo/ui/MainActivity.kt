@@ -43,6 +43,7 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
     private var listOfLocalUsers: List<ContactModel>? = null
     private var listOfRegisteredUsers: ObservableList<FireUser> = ObservableArrayList<FireUser>()
     private val fireStoreDB = FirebaseFirestore.getInstance()
+    private var isAddCallActivity = false
 
 
     private fun initLastAdapter(): LastAdapter {
@@ -59,7 +60,7 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
     }
 
     private fun setTextDrawable(user: FireUser, profilePic: AppCompatImageView) {
-        val generator = ColorGenerator.MATERIAL;
+        val generator = ColorGenerator.MATERIAL
         // generate color based on a key (same key returns the same color), useful for list/grid views
         val randomColor = generator.getColor(user.userId)
         val builder = TextDrawable.builder()
@@ -68,12 +69,20 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
                 .endConfig()
                 .round()
         val drawable = builder.build(user.name.substring(0, 1), randomColor)
-        profilePic.setImageDrawable(drawable);
+        profilePic.setImageDrawable(drawable)
     }
 
     private fun callUser(item: FireUser) {
-//        join_call.setOnClickListener { launchVideoChatActivity() }
-        makeCall(item.userId, item.name, item.getPhoneWithCountryCode())
+        //Check onAddCallClicked in VideoChatViewActivity for intent.getStringExtra(CHAT_ROOM_KEY))
+
+        if (isAddCallActivity) {
+            makeCall(item.userId, item.name, item.getPhoneWithCountryCode(), intent.getStringExtra(CHAT_ROOM_KEY))
+            return
+        }
+        if (isCallOnGoing)
+            parent_container.snack("End the current call and try again")
+        else
+            makeCall(item.userId, item.name, item.getPhoneWithCountryCode(), intent.getStringExtra(CHAT_ROOM_KEY))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,8 +91,20 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
         setSupportActionBar(toolbar)
         ContactsPullTask(WeakReference(this)).executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, getLocalCountryCode())
         contact_list.adapter = contactsAdapter
-        val welcomeMessage = "${getWelcomeMessage()}, ${UserInfo.name}"
-        welcome_tv.text = welcomeMessage
+
+        if (intent != null && intent.action != null)
+            isAddCallActivity = intent.action == ADD_PEOPLE_ACTION
+
+        if (!isAddCallActivity) {
+            val welcomeMessage = "${getWelcomeMessage()}, ${UserInfo.name}"
+            welcome_tv.text = welcomeMessage
+        } else {
+            initAddCallView()
+        }
+    }
+
+    private fun initAddCallView() {
+        welcome_tv.text = "Add people to the call"
     }
 
     private fun fetchContactsFromServer() {
@@ -119,7 +140,7 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
+        if (!isAddCallActivity) menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
 
@@ -154,13 +175,15 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
     }
 
     override fun onRtcServiceConnected(rtcEngine: RtcEngine?) {
-        on_call_tv.setOnClickListener { launchVideoChatActivity() }
-        on_call_tv.visibility = if (isCallOnGoing) View.VISIBLE else View.GONE
+        if (!isAddCallActivity) {
+            on_call_tv.setOnClickListener { launchVideoChatActivity() }
+            on_call_tv.visibility = if (isCallOnGoing) View.VISIBLE else View.GONE
+        }
     }
 
     private fun launchVideoChatActivity() {
         startActivity(Intent(this, VideoChatViewActivity::class.java)
-                .apply { putExtra(CHAT_ROOM_KEY, "demo_1") })
+                .apply { putExtra(CHAT_ROOM_KEY, lastKnownRoomID) })
     }
 
 
@@ -168,7 +191,7 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
     fun onLoginFailedEvent(event: LoginFailedEvent) {
         showDialogWithAction("Please check your internet and try again",
                 title = "Login failed error ${event.error}",
-                okText = "Retry",cancelText = "", onPositiveClick = { retrySignalLogin() })
+                okText = "Retry", cancelText = "", onPositiveClick = { retrySignalLogin() })
     }
 
     @Subscribe
@@ -184,6 +207,21 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
     override fun onStop() {
         mEventBus.unregOnce(this)
         super.onStop()
+    }
+
+    override fun onBackPressed() {
+        if (isAddCallActivity) {
+            finish()
+            val intent = Intent(this, VideoChatViewActivity::class.java)
+            intent.putExtra(CHAT_ROOM_KEY, getIntent().getStringExtra(CHAT_ROOM_KEY))
+            startActivity(intent)
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+    companion object {
+        const val ADD_PEOPLE_ACTION = "ADD_PEOPLE_ACTION"
     }
 
 }
@@ -215,7 +253,6 @@ class ContactsPullTask(private val weakActivity: WeakReference<Activity>) : Asyn
     interface ContactsPullTaskInteractionListener {
         fun onContactPulled(list: MutableList<ContactModel>)
     }
-
 
 }
 

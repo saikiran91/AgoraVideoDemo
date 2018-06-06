@@ -215,11 +215,17 @@ public class VideoChatViewActivity extends BaseRtcActivity implements VideoViewA
 
     public void onNotesClicked(View view) {
         finish();
-        startActivity(new Intent(this, NotesActivity.class));
+        Intent intent =  new Intent(this, NotesActivity.class);
+        intent.putExtra(CHAT_ROOM_KEY, mRoomId);
+        startActivity(intent);
     }
 
     public void onAddCallClicked(View view) {
-
+        finish();
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setAction(MainActivity.ADD_PEOPLE_ACTION);
+        intent.putExtra(CHAT_ROOM_KEY, mRoomId);
+        startActivity(intent);
     }
 
     // Tutorial Step 1
@@ -269,7 +275,7 @@ public class VideoChatViewActivity extends BaseRtcActivity implements VideoViewA
             for (int userId : getOnCallList()) setupRemoteVideo(userId);
             //lastRemoteUserID != -1 is to make sure it is not connected to non existing user
         }
-        joinChannelRequested();
+        joinChannelRequested(mRoomId);
     }
 
 

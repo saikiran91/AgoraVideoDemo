@@ -13,6 +13,8 @@ import io.agora.agoravideodemo.R;
 import io.agora.agoravideodemo.base.BaseRtcActivity;
 import io.agora.rtc.RtcEngine;
 
+import static io.agora.agoravideodemo.ui.VideoChatViewActivity.CHAT_ROOM_KEY;
+
 public class NotesActivity extends BaseRtcActivity {
 
     private TextView mOnCallTv;
@@ -66,10 +68,16 @@ public class NotesActivity extends BaseRtcActivity {
     private void finishIfCallIsOnging() {
         if (isCallOnGoing()) {
             finish();
-            startActivity(new Intent(this, VideoChatViewActivity.class));
+            Intent intent = new Intent(this, VideoChatViewActivity.class);
+            intent.putExtra(CHAT_ROOM_KEY, getIntent().getStringExtra(CHAT_ROOM_KEY));
+            startActivity(intent);
         } else {
             startActivity(new Intent(this, MainActivity.class));
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        finishIfCallIsOnging();
+    }
 }
