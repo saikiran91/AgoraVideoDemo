@@ -8,11 +8,16 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.HashSet;
 
 import io.agora.agoravideodemo.utils.NotificationHelper;
 import io.agora.rtc.IRtcEngineEventHandler;
 import io.agora.rtc.RtcEngine;
+
+import static io.agora.agoravideodemo.utils.CommonUtilsKt.regOnce;
+import static io.agora.agoravideodemo.utils.CommonUtilsKt.unregOnce;
 
 public class RtcService extends Service {
     private static final String TAG = "RtcService";

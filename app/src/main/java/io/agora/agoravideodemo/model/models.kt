@@ -2,6 +2,9 @@ package io.agora.agoravideodemo.model
 
 import com.chibatching.kotpref.KotprefModel
 
+
+
+
 /**
  * Created by saiki on 01-06-2018.
  **/
@@ -19,7 +22,15 @@ object UserInfo : KotprefModel() {
 }
 
 //Signal Stuffs
-enum class SignalMessageAction { MAKE_CALL, END_CALL, ACCEPT_CALL, REJECT_CALL, LINE_BUSY }
+enum class SignalMessageAction { MAKE_CALL, END_CALL, ACCEPT_CALL, REJECT_CALL, LINE_BUSY;
+    companion object {
+        operator fun contains(value: String): Boolean {
+            for (c in values()) if (c.name == value) return true
+            return false
+        }
+    }
+}
+
 
 data class SignalSenderInfo(
         val userId: String = UserInfo.userId,

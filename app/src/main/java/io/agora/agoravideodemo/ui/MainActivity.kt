@@ -22,10 +22,7 @@ import io.agora.agoravideodemo.FirebasePhoneNumAuthActivity
 import io.agora.agoravideodemo.R
 import io.agora.agoravideodemo.base.BaseRtcActivity
 import io.agora.agoravideodemo.databinding.ItemContactBinding
-import io.agora.agoravideodemo.model.ContactModel
-import io.agora.agoravideodemo.model.FireUser
-import io.agora.agoravideodemo.model.ShowSnackEvent
-import io.agora.agoravideodemo.model.UserInfo
+import io.agora.agoravideodemo.model.*
 import io.agora.agoravideodemo.ui.VideoChatViewActivity.CHAT_ROOM_KEY
 import io.agora.agoravideodemo.utils.*
 import io.agora.rtc.RtcEngine
@@ -33,6 +30,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item_contact.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import timber.log.Timber
 import java.lang.ref.WeakReference
 
@@ -163,6 +161,14 @@ class MainActivity : BaseRtcActivity(), ContactsPullTask.ContactsPullTaskInterac
     private fun launchVideoChatActivity() {
         startActivity(Intent(this, VideoChatViewActivity::class.java)
                 .apply { putExtra(CHAT_ROOM_KEY, "demo_1") })
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onLoginFailedEvent(event: LoginFailedEvent) {
+        showDialogWithAction("Please check your internet and try again",
+                title = "Login failed error ${event.error}",
+                okText = "Retry",cancelText = "", onPositiveClick = { retrySignalLogin() })
     }
 
     @Subscribe

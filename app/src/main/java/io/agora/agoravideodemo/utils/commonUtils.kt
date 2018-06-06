@@ -1,7 +1,9 @@
 package io.agora.agoravideodemo.utils
 
+import android.app.AlertDialog
 import android.content.Context
 import android.support.design.widget.Snackbar
+import android.text.Html
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import com.google.gson.Gson
@@ -86,4 +88,30 @@ fun View.snack(message: String, length: Int = Snackbar.LENGTH_SHORT) {
     val snack = Snackbar.make(this, message, length)
     snack.show()
 }
-
+fun Context.showDialogWithAction(message: String,
+                                 title: String = "Alert",
+                                 onPositiveClick: (() -> Unit)? = null,
+                                 okText: String = "Ok",
+                                 cancelText: String = "Cancel",
+                                 onNeutralClick: (() -> Unit)? = null,
+                                 neutralText: String? = null): AlertDialog {
+    val dialog = AlertDialog.Builder(this).apply {
+        setMessage(Html.fromHtml(message))
+        setTitle(title)
+        setPositiveButton(okText, { dialogInterface, _ ->
+            onPositiveClick?.invoke()
+            dialogInterface.dismiss()
+        })
+        setNegativeButton(cancelText, { dialogInterface, _ ->
+            dialogInterface.dismiss()
+        })
+        neutralText?.let {
+            setNeutralButton(it, { dialogInterface, _ ->
+                onNeutralClick?.invoke()
+                dialogInterface.dismiss()
+            })
+        }
+    }.create()
+    dialog.show()
+    return dialog
+}

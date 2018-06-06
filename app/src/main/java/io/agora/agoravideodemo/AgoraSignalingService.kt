@@ -26,13 +26,17 @@ class AgoraSignalingService : Service() {
     private val mGson = GsonBuilder().setPrettyPrinting().create()
     private val mNotificationHelper: NotificationHelper by lazy { NotificationHelper(this) }
     private val mEventBus = EventBus.getDefault()
+    private val agoraAppId: String by lazy { getString(R.string.agora_app_id) }
 
     override fun onCreate() {
         super.onCreate()
-        val appID = getString(R.string.agora_app_id)
         mSignal.callbackSet(mCustomICallBack)
-        mSignal.login2(appID, io.agora.agoravideodemo.model.UserInfo.userId, "_no_need_token", 0, "", 5, 2)
+        loginToAgoraSignaling()
         startSignalingForeground()
+    }
+
+    private fun loginToAgoraSignaling() {
+        mSignal.login2(agoraAppId, io.agora.agoravideodemo.model.UserInfo.userId, "_no_need_token", 0, "", 5, 2)
     }
 
     private fun startSignalingForeground() {
@@ -47,28 +51,31 @@ class AgoraSignalingService : Service() {
         super.onDestroy()
     }
 
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent != null && intent.action != null) {
-            when (SignalMessageAction.valueOf(intent.action)) {
-                SignalMessageAction.MAKE_CALL -> {
-                    makeCall(intent.extras.getString(ON_GOING_USER_ID_KEY),
-                            intent.extras.getString(RECEIVER_CALL_USER_NAME_KEY),
-                            intent.extras.getString(RECEIVER_CALL_PHONE_KEY))
-                }
-                SignalMessageAction.END_CALL -> {
-                    endCall(intent.extras.getString("receiverUserId"))
-                }
-                SignalMessageAction.REJECT_CALL -> {
-                    rejectCall(intent.extras.getString("callerUserId"))
-                }
-                SignalMessageAction.ACCEPT_CALL -> {
-                    callAccepted(intent.extras.getString("channelID"), intent.extras.getString("callerUserId"))
-                }
-                SignalMessageAction.LINE_BUSY -> {
-                    busyLine(intent.extras.getString("callerUserId"))
-                }
+            if (SignalMessageAction.contains(intent.action)) {
+                when (SignalMessageAction.valueOf(intent.action)) {
+                    SignalMessageAction.MAKE_CALL -> {
+                        makeCall(intent.extras.getString(ON_GOING_USER_ID_KEY),
+                                intent.extras.getString(RECEIVER_CALL_USER_NAME_KEY),
+                                intent.extras.getString(RECEIVER_CALL_PHONE_KEY))
+                    }
+                    SignalMessageAction.END_CALL -> {
+                        endCall(intent.extras.getString("receiverUserId"))
+                    }
+                    SignalMessageAction.REJECT_CALL -> {
+                        rejectCall(intent.extras.getString("callerUserId"))
+                    }
+                    SignalMessageAction.ACCEPT_CALL -> {
+                        callAccepted(intent.extras.getString("channelID"), intent.extras.getString("callerUserId"))
+                    }
+                    SignalMessageAction.LINE_BUSY -> {
+                        busyLine(intent.extras.getString("callerUserId"))
+                    }
 
+                }
+            } else if (intent.action == "RETRY_LOGIN") {
+                loginToAgoraSignaling()
             }
         }
         return super.onStartCommand(intent, flags, startId)
@@ -135,6 +142,7 @@ class AgoraSignalingService : Service() {
 
         override fun onLoginFailed(ecode: Int) {
             Timber.d("onLoginFailed ecode = %s", ecode)
+            mEventBus.post(LoginFailedEvent(error = ecode))
         }
 
         override fun onLogout(ecode: Int) {

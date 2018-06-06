@@ -82,6 +82,7 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        retrySignalLogin();
         // This registers mMessageReceiver to receive messages.
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, getIntentFilter());
     }
@@ -195,5 +196,15 @@ abstract public class BaseRtcActivity extends AppCompatActivity {
 
     final public Boolean isCallOnGoing() {
         return getRtcEngine() != null && getRtcEngine().getCallId() != null;
+    }
+
+    public final Intent getSignalingIntent() {
+        return new Intent(this, AgoraSignalingService.class);
+    }
+
+    public final void retrySignalLogin() {
+        Intent intent = getSignalingIntent();
+        intent.setAction("RETRY_LOGIN");
+        startService(intent);
     }
 }

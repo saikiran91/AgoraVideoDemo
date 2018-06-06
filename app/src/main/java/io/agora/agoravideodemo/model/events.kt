@@ -17,3 +17,6 @@ class LineBusyEvent
 class ShowToastEvent(val message: String)
 
 class ShowSnackEvent(val message: String)
+
+
+class LoginFailedEvent(val error: Int)

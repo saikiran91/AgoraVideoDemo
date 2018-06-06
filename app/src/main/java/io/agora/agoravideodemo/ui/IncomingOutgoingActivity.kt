@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.support.v4.app.TaskStackBuilder
-import io.agora.agoravideodemo.AgoraSignalingService
 import io.agora.agoravideodemo.R
 import io.agora.agoravideodemo.base.BaseRtcActivity
 import io.agora.agoravideodemo.model.*
@@ -35,13 +34,22 @@ class IncomingOutgoingActivity : BaseRtcActivity() {
 
     override fun onRtcServiceConnected(rtcEngine: RtcEngine?) {
         Timber.d("onRtcServiceConnected")
+        mEventBus.getStickyEvent(IncomingCallEvent::class.java)?.let {
+            if (isCallOnGoing) {
+                sendActionToSignalingService(it.callerInfo)
+                finish()
+                return
+            }
+            showIncomingActions(it.callerInfo)
+            mEventBus.removeStickyEvent(it)
+        }
     }
 
     private fun sendActionToSignalingService(message: SignalMessage) {
-        val intent = getSignalingIntent()
-        intent.action = SignalMessageAction.LINE_BUSY.name
-        intent.putExtra("callerUserId", message.senderInfo.userId)
-        startService(intent)
+        startService(signalingIntent.apply {
+            action = SignalMessageAction.LINE_BUSY.name
+            putExtra("callerUserId", message.senderInfo.userId)
+        })
     }
 
 
@@ -73,14 +81,14 @@ class IncomingOutgoingActivity : BaseRtcActivity() {
     }
 
     private fun sendEndCallAction(receiverDetails: OutgoingCallEvent) {
-        val intent = getSignalingIntent()
+        val intent = signalingIntent
         intent.action = SignalMessageAction.END_CALL.name
         intent.putExtra("receiverUserId", receiverDetails.receiverUserId)
         startService(intent)
     }
 
     private fun sendCallRejectedAction(message: SignalMessage) {
-        val intent = getSignalingIntent()
+        val intent = signalingIntent
         intent.action = SignalMessageAction.REJECT_CALL.name
         intent.putExtra("callerUserId", message.senderInfo.userId)
         startService(intent)
@@ -106,14 +114,10 @@ class IncomingOutgoingActivity : BaseRtcActivity() {
             sendCallRejectedAction(message)
             this@IncomingOutgoingActivity.finish()
         }
-
-        if (isCallOnGoing) {
-            sendActionToSignalingService(message)
-        }
     }
 
     private fun sendCallAcceptedAction(message: SignalMessage) {
-        val intent = getSignalingIntent()
+        val intent = signalingIntent
         intent.action = SignalMessageAction.ACCEPT_CALL.name
         intent.putExtra("channelID", message.channelID)
         intent.putExtra("callerUserId", message.senderInfo.userId)
@@ -123,8 +127,8 @@ class IncomingOutgoingActivity : BaseRtcActivity() {
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     fun onIncomingCallEvent(event: IncomingCallEvent) {
-        showIncomingActions(event.callerInfo)
-        mEventBus.removeStickyEvent(event)
+        //Make sure to Remove this stick event
+        //Pass here and handle it in onRtcServiceConnected
     }
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
@@ -150,8 +154,6 @@ class IncomingOutgoingActivity : BaseRtcActivity() {
         finish()
     }
 
-    private fun getSignalingIntent() = Intent(this, AgoraSignalingService::class.java)
-
     override fun onResume() {
         super.onResume()
         mEventBus.regOnce(this)
@@ -159,6 +161,9 @@ class IncomingOutgoingActivity : BaseRtcActivity() {
 
     override fun onPause() {
         super.onPause()
+        mEventBus.getStickyEvent(IncomingCallEvent::class.java)?.let {
+            mEventBus.removeStickyEvent(it)
+        }
         mEventBus.unregOnce(this)
     }
 
